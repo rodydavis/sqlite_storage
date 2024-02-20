@@ -103,7 +103,8 @@ final docs = db.documents;
 
 // Document
 final doc = docs.doc('collection', 'id'); // Document
-await doc.set({'key': 'value'});
+await doc.set({'key': 'value', 'list': [1, 2, 3]});
+await doc.update({'key': 'value 2'}); // partial update
 final id = doc.id; // 'id'
 final value = await doc.get(); // Map<String, dynamic>?
 final stream = doc.watch(); // Stream<Map<String, dynamic>?>

@@ -150,7 +150,33 @@ await files.delete('path');
 await files.clear();
 ```
 
-## Graph Database
+## Requests
+
+```dart
+import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+import 'package:http/http.dart' as http;
+
+final Database db = ...;
+final requests = db.requests;
+
+final innerClient = http.Client();
+db.innerClient = innerClient;
+
+// GET
+final response = await requests.get(Uri.parse('https://example.com')); // Stream<http.Response>
+await for (final res in response) {
+  print((res.statusCode, res.body));
+}
+
+// Repeated requests with Cache-Control header are cached
+final response = await requests.get(Uri.parse('https://example.com'), headers: {'Cache-Control': 'max-age=60'}); // Stream<http.Response>
+await for (final res in response) {
+  print((res.statusCode, res.body));
+}
+```
+
+## Graph
 
 ```dart
 import 'package:signal_db/signal_db.dart';
@@ -202,30 +228,4 @@ final nodes = await graph.selectTraverseBodies(node.id).get();
 
 // Traverse
 final nodes = await graph.selectTraverse(node.id).get();
-```
-
-## Requests
-
-```dart
-import 'package:signal_db/signal_db.dart';
-import 'package:sqlite_async/sqlite_async.dart';
-import 'package:http/http.dart' as http;
-
-final Database db = ...;
-final requests = db.requests;
-
-final innerClient = http.Client();
-db.innerClient = innerClient;
-
-// GET
-final response = await requests.get(Uri.parse('https://example.com')); // Stream<http.Response>
-await for (final res in response) {
-  print((res.statusCode, res.body));
-}
-
-// Repeated requests with Cache-Control header are cached
-final response = await requests.get(Uri.parse('https://example.com'), headers: {'Cache-Control': 'max-age=60'}); // Stream<http.Response>
-await for (final res in response) {
-  print((res.statusCode, res.body));
-}
 ```

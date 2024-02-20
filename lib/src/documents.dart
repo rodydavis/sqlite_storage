@@ -69,6 +69,11 @@ class DocumentDatabase extends Dao {
     );
   }
 
+  @override
+  Future<void> open() async {
+    await removeExpired();
+  }
+
   // TODO: https://www.sqlite.org/json1.html#jmini
   // Selectable<Object?> jsonExtract(
   //   List<String> keys, {

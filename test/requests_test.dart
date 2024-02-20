@@ -99,6 +99,37 @@ void main() {
         expect(inner.count, 2);
       });
 
+      test('remove stale', () async {
+        final client = db.requests;
+        // Set cache control header
+        inner.headers[RequestsDatabase.cacheControlKey] = 'max-age=3';
+        var res = await client.get(uri).first;
+
+        expect(res.statusCode, 200);
+        expect(inner.count, 1);
+
+        res = await client.get(uri).first;
+        expect(res.statusCode, 200);
+        expect(inner.count, 1);
+
+        await Future.delayed(const Duration(seconds: 4));
+
+        res = await client.get(uri).first;
+        expect(res.statusCode, 200);
+        expect(inner.count, 2);
+
+        res = await client.get(uri).first;
+        expect(res.statusCode, 200);
+        expect(inner.count, 2);
+
+        await Future.delayed(const Duration(seconds: 4));
+        await client.removeStale();
+
+        res = await client.get(uri).first;
+        expect(res.statusCode, 200);
+        expect(inner.count, 3);
+      });
+
       test('check that cache is not saved on error', () async {
         final client = db.requests;
         // Set cache control header

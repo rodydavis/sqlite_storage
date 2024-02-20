@@ -44,9 +44,15 @@ class Database {
       },
     ));
     await migrations.migrate(db);
+    for (final dao in daos) {
+      await dao.open();
+    }
   }
 
   Future<void> close() async {
+    for (final dao in daos) {
+      await dao.close();
+    }
     await db.close();
   }
 
@@ -73,4 +79,8 @@ abstract class Dao {
   Dao(this.database);
 
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down);
+
+  Future<void> open() async {}
+
+  Future<void> close() async {}
 }

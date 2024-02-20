@@ -117,6 +117,21 @@ class RequestsDatabase extends Dao {
       }
     }
   }
+
+  Future<void> removeStale() async {
+    final cache = await select().get();
+    for (final item in cache) {
+      final state = item.staleState();
+      if (state == CacheState.stale) {
+        await deleteById(item.id);
+      }
+    }
+  }
+
+  @override
+  Future<void> open() async {
+    await removeStale();
+  }
 }
 
 typedef CachedRequest = ({

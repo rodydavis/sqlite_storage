@@ -128,7 +128,8 @@ class KeyValueDatabase extends Dao {
     final result = await get(key);
     if (result == null) return null;
     if (result is String) return result;
-    throw Exception('Value for key "$key" is not a string');
+    throw Exception(
+        'Value for key "$key" is not a string (${result.runtimeType}|$result)');
   }
 
   Stream<String?> watchString(
@@ -278,7 +279,7 @@ class KeyValueDatabase extends Dao {
     });
   }
 
-  Future<void>  setJson(String key, Object? value) async {
+  Future<void> setJson(String key, Object? value) async {
     await set(key, jsonEncode(value));
   }
 
@@ -341,6 +342,74 @@ class KeyValueDatabase extends Dao {
       if (value == null) return null;
       if (value is String) return (jsonDecode(value) as List).cast<String>();
       throw Exception('Value for key "$key" is not a List<String>');
+    });
+  }
+
+  Future<void> setEnum<T extends Enum>(String key, T value) {
+    return setString(key, value.name);
+  }
+
+  Future<T?> getEnum<T extends Enum>(List<T> values, String key) async {
+    final name = await getString(key);
+    if (name == null) return null;
+    return values.firstWhere(
+      (e) => e.name == name,
+      orElse: () => throw Exception('Value for key "$key" is not a valid enum'),
+    );
+  }
+
+  Stream<T?> watchEnum<T extends Enum>(
+    List<T> values,
+    String key, {
+    Duration throttle = const Duration(milliseconds: 30),
+  }) {
+    return watchString(key, throttle: throttle).map((name) {
+      if (name == null) return null;
+      return values.firstWhere(
+        (e) => e.name == name,
+        orElse: () =>
+            throw Exception('Value for key "$key" is not a valid enum'),
+      );
+    });
+  }
+
+  Future<void> setDateTime(String key, DateTime value) async {
+    await setString(key, value.toIso8601String());
+  }
+
+  Future<DateTime?> getDateTime(String key) async {
+    final result = await getString(key);
+    if (result == null) return null;
+    return DateTime.parse(result);
+  }
+
+  Stream<DateTime?> watchDateTime(
+    String key, {
+    Duration throttle = const Duration(milliseconds: 30),
+  }) {
+    return watchString(key, throttle: throttle).map((value) {
+      if (value == null) return null;
+      return DateTime.parse(value);
+    });
+  }
+
+  Future<void> setDuration(String key, Duration value) async {
+    await setInt(key, value.inMilliseconds);
+  }
+
+  Future<Duration?> getDuration(String key) async {
+    final result = await getInt(key);
+    if (result == null) return null;
+    return Duration(milliseconds: result);
+  }
+
+  Stream<Duration?> watchDuration(
+    String key, {
+    Duration throttle = const Duration(milliseconds: 30),
+  }) {
+    return watchInt(key, throttle: throttle).map((value) {
+      if (value == null) return null;
+      return Duration(milliseconds: value);
     });
   }
 }

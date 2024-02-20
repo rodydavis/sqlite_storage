@@ -196,6 +196,115 @@ void main() {
       });
     });
 
+    group('enum', () {
+      test('setEnum', () async {
+        await db.kv.setEnum('key', TestEnum.one);
+        expect(await db.kv.getEnum(TestEnum.values, 'key'), TestEnum.one);
+      });
+      test('getEnum', () async {
+        await db.kv.setEnum('key', TestEnum.one);
+        expect(await db.kv.getEnum(TestEnum.values, 'key'), TestEnum.one);
+      });
+
+      test('watchEnum', () async {
+        final list = <TestEnum?>[];
+        final watch = db.kv.watchEnum(TestEnum.values, 'key');
+        watch.listen(list.add);
+        await db.kv.setEnum('key', TestEnum.one);
+        await Future.delayed(const Duration(milliseconds: 100));
+        await db.kv.setEnum('key', TestEnum.two);
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(list, [TestEnum.one, TestEnum.two]);
+      });
+
+      test('getEnum missing', () async {
+        expect(await db.kv.getEnum(TestEnum.values, 'key'), null);
+      });
+      test('getEnum wrong type', () async {
+        await db.kv.set('key', 'value');
+        expect(
+          () async => await db.kv.getEnum(TestEnum.values, 'key'),
+          throwsA(isA<Exception>()),
+        );
+      });
+    });
+
+    group('date time', () {
+      test('setDateTime', () async {
+        final date = DateTime.now();
+        await db.kv.setDateTime('key', date);
+        expect(await db.kv.getDateTime('key'), date);
+      });
+      test('getDateTime', () async {
+        final date = DateTime.now();
+        await db.kv.setDateTime('key', date);
+        expect(await db.kv.getDateTime('key'), date);
+      });
+
+      test('watchDateTime', () async {
+        final list = <DateTime?>[];
+        final watch = db.kv.watchDateTime('key');
+        watch.listen(list.add);
+        final date = DateTime.now();
+        await db.kv.setDateTime('key', date);
+        await Future.delayed(const Duration(milliseconds: 100));
+        final date2 = DateTime.now();
+        await db.kv.setDateTime('key', date2);
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(list, [date, date2]);
+      });
+
+      test('getDateTime missing', () async {
+        expect(await db.kv.getDateTime('key'), null);
+      });
+      test('getDateTime wrong type', () async {
+        await db.kv.set('key', 'value');
+        expect(
+          () async => await db.kv.getDateTime('key'),
+          throwsA(isA<Exception>()),
+        );
+      });
+    });
+
+    group('duration', () {
+      test('setDuration', () async {
+        const duration = Duration(seconds: 42);
+        await db.kv.setDuration('key', duration);
+        expect(await db.kv.getDuration('key'), duration);
+      });
+
+      test('getDuration', () async {
+        const duration = Duration(seconds: 42);
+        await db.kv.setDuration('key', duration);
+        expect(await db.kv.getDuration('key'), duration);
+      });
+
+      test('watchDuration', () async {
+        final list = <Duration?>[];
+        final watch = db.kv.watchDuration('key');
+        watch.listen(list.add);
+        const duration = Duration(seconds: 42);
+        await db.kv.setDuration('key', duration);
+        await Future.delayed(const Duration(milliseconds: 100));
+        const duration2 = Duration(seconds: 43);
+        await db.kv.setDuration('key', duration2);
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(list, [duration, duration2]);
+      });
+
+      test('getDuration missing', () async {
+        expect(await db.kv.getDuration('key'), null);
+      });
+
+      test('getDuration wrong type', () async {
+        await db.kv.set('key', 'value');
+        expect(
+          () async => await db.kv.getDuration('key'),
+          throwsA(isA<Exception>()),
+        );
+      });
+    });
+
     group('json map', () {
       test('setJsonMap', () async {
         await db.kv.setJsonMap('key', {'key': 'value'});
@@ -459,4 +568,10 @@ void main() {
       expect(await db.kv.getString('key'), null);
     });
   });
+}
+
+enum TestEnum {
+  one,
+  two,
+  three,
 }

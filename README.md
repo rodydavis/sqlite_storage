@@ -229,3 +229,11 @@ final nodes = await graph.selectTraverseBodies(node.id).get();
 // Traverse
 final nodes = await graph.selectTraverse(node.id).get();
 ```
+
+## Contributing
+
+### Testing
+
+```sh
+dart test --concurrency=1
+```

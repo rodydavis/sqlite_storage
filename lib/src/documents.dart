@@ -24,7 +24,8 @@ class DocumentDatabase extends Dao {
     }
   }
 
-  Document doc(String collection, String id) => Document(this, '$collection/$id');
+  Document doc(String collection, String id) =>
+      Document(this, '$collection/$id');
   Collection collection(String prefix) => Collection(this, prefix);
 
   String generateId() => id_generator.generateId();
@@ -96,23 +97,38 @@ class Document {
       exists = null;
     }
     if (exists != null) {
-      await db.database.db.execute(
-        'UPDATE documents SET data = :data, updated = :date WHERE path = :path',
-        [
-          jsonEncode(data),
-          DateTime.now().millisecondsSinceEpoch,
-          path,
-        ],
+      final sql = StringBuffer(
+        'UPDATE documents SET data = :data, updated = :date',
       );
+      final args = [
+        jsonEncode(data),
+        DateTime.now().millisecondsSinceEpoch,
+        path,
+      ];
+      if (ttl != null) {
+        sql.write(', ttl = :ttl');
+        args.add(ttl.inMilliseconds);
+      }
+      sql.write(' WHERE path = :path');
+      await db.database.db.execute(sql.toString(), args);
     } else {
-      await db.database.db.execute(
-        'INSERT INTO documents (path, data, created, updated) VALUES (:path, :data, :date, :date)',
-        [
-          path,
-          jsonEncode(data),
-          DateTime.now().millisecondsSinceEpoch,
-        ],
-      );
+      List<String> columns = ['path', 'data', 'created', 'updated'];
+      final args = [
+        path,
+        jsonEncode(data),
+        DateTime.now().millisecondsSinceEpoch,
+        DateTime.now().millisecondsSinceEpoch,
+      ];
+      if (ttl != null) {
+        columns.add('ttl');
+        args.add(ttl.inMilliseconds);
+      }
+      final sql = StringBuffer('INSERT INTO documents (');
+      sql.writeAll(columns, ', ');
+      sql.write(') VALUES (');
+      sql.writeAll(columns.map((_) => '?'), ', ');
+      sql.write(')');
+      await db.database.db.execute(sql.toString(), args);
     }
   }
 

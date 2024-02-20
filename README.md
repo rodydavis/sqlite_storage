@@ -10,16 +10,16 @@ Add the following to your `pubspec.yaml` file:
 
 ```yaml
 dependencies:
-  signal_db:
+  sqlite_storage:
     git:
-      url: git://github.com/rodydavis/signal_db.git
+      url: git://github.com/rodydavis/sqlite_storage.git
       ref: main
 ```
 
 ## Usage
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final db = Database(SqliteDatabase(path: 'app.db'));
@@ -31,7 +31,7 @@ await db.close();
 ## Key/Value
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final Database db = ...;
@@ -95,7 +95,7 @@ final stream = kv.watchJson('key'); // Stream<Object?>
 ## Documents
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final Database db = ...;
@@ -123,7 +123,7 @@ final doc = docs.collection('collection').doc('id-1').collection('sub-collection
 ## Files
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final Database db = ...;
@@ -153,7 +153,7 @@ await files.clear();
 ## Requests
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:http/http.dart' as http;
 
@@ -179,7 +179,7 @@ await for (final res in response) {
 ## Graph
 
 ```dart
-import 'package:signal_db/signal_db.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 final Database db = ...;

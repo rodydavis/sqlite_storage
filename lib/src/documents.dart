@@ -84,10 +84,7 @@ class Document {
 
   Collection collection(String prefix) => Collection(db, '$path/$prefix');
 
-  Future<void> set(
-    JsonDocument data, {
-    Duration? ttl,
-  }) async {
+  Future<void> set(JsonDocument data) async {
     var exists = await db.database.db.getOptional(
       'SELECT * FROM documents WHERE path = :path',
       [path],
@@ -105,10 +102,6 @@ class Document {
         DateTime.now().millisecondsSinceEpoch,
         path,
       ];
-      if (ttl != null) {
-        sql.write(', ttl = :ttl');
-        args.add(ttl.inMilliseconds);
-      }
       sql.write(' WHERE path = :path');
       await db.database.db.execute(sql.toString(), args);
     } else {
@@ -119,10 +112,6 @@ class Document {
         DateTime.now().millisecondsSinceEpoch,
         DateTime.now().millisecondsSinceEpoch,
       ];
-      if (ttl != null) {
-        columns.add('ttl');
-        args.add(ttl.inMilliseconds);
-      }
       final sql = StringBuffer('INSERT INTO documents (');
       sql.writeAll(columns, ', ');
       sql.write(') VALUES (');
@@ -130,6 +119,20 @@ class Document {
       sql.write(')');
       await db.database.db.execute(sql.toString(), args);
     }
+  }
+
+  // TODO: https://www.sqlite.org/json1.html#jrm
+  /// Partial update
+  Future<void> update(JsonDocument data) async {
+    final exists = await get();
+    if (exists == null) {
+      // Create a new document if it doesn't exist
+      await set(data);
+      return;
+    }
+    final current = exists.data ?? {};
+    final updated = Map<String, Object?>.from(current)..addAll(data);
+    await set(updated);
   }
 
   Future<void> remove() {

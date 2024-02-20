@@ -41,6 +41,20 @@ void main() {
       ]);
     });
 
+    test('update', () async {
+      const prefix = 'mypath/test';
+      await db.documents.doc(prefix, '1').set({'name': 'one', 'age': 1});
+      await db.documents.doc(prefix, '1').update({'name': 'two'});
+      final results = await db.documents
+          .collection(prefix)
+          .select()
+          .get()
+          .then((value) => value.map((e) => e.data).toList());
+      expect(results, [
+        {'name': 'two', 'age': 1},
+      ]);
+    });
+
     test('remove', () async {
       const prefix = 'mypath/test';
       await db.documents.doc(prefix, '1').set({'name': 'one'});

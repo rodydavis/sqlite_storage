@@ -132,6 +132,8 @@ class RequestsDatabase extends Dao {
   Future<void> open() async {
     await removeStale();
   }
+
+  DatabaseClient toHttpClient() => DatabaseClient(this);
 }
 
 typedef CachedRequest = ({
@@ -229,4 +231,37 @@ enum CacheState {
   fresh,
   stale,
   staleWhileRevalidate,
+}
+
+class DatabaseClient extends http.BaseClient {
+  final RequestsDatabase db;
+  DatabaseClient(this.db);
+  @override
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET') {
+      final res = await db
+          .get(
+            request.url,
+            headers: request.headers,
+            body: await request.finalize().toBytes(),
+          )
+          .first; // ignore staleWhileRevalidate second response
+      return res.toStreamedResponse();
+    }
+    return db.inner.send(request);
+  }
+}
+
+extension on http.Response {
+  http.StreamedResponse toStreamedResponse() {
+    return http.StreamedResponse(
+      Stream.value(bodyBytes),
+      statusCode,
+      request: request,
+      headers: headers,
+      persistentConnection: persistentConnection,
+      reasonPhrase: reasonPhrase,
+      isRedirect: isRedirect,
+    );
+  }
 }

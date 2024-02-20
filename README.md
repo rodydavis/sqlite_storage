@@ -1,6 +1,8 @@
 # sqlite_storage
 
-Set of helpers for sqlite_async that add convenient APIs for working with common data types.
+Common storage interfaces for a SQLite database.
+
+Uses [sqlite_async](https://pub.dev/packages/sqlite_async) for the underlying database.
 
 ## Installing
 

@@ -115,6 +115,9 @@ final doc = collection.doc('id'); // Document with id
 final doc = collection.doc(); // Document with new id
 final docs = await collection.select().get(); // List<Map<String, dynamic>>
 final stream = collection.select().watch(); // Stream<List<Map<String, dynamic>>>
+
+// Chain
+final doc = docs.collection('collection').doc('id-1').collection('sub-collection').doc('id-2');
 ```
 
 ## Files

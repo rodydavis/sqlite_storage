@@ -133,6 +133,18 @@ class RequestsDatabase extends Dao {
     await removeStale();
   }
 
+  Future<http.StreamedResponse> send(http.BaseRequest request) async {
+    if (request.method == 'GET') {
+      final res = await get(
+        request.url,
+        headers: request.headers,
+        body: await request.finalize().toBytes(),
+      ).first; // ignore staleWhileRevalidate second response
+      return res.toStreamedResponse();
+    }
+    return inner.send(request);
+  }
+
   DatabaseClient toHttpClient() => DatabaseClient(this);
 }
 
@@ -236,19 +248,10 @@ enum CacheState {
 class DatabaseClient extends http.BaseClient {
   final RequestsDatabase db;
   DatabaseClient(this.db);
+
   @override
-  Future<http.StreamedResponse> send(http.BaseRequest request) async {
-    if (request.method == 'GET') {
-      final res = await db
-          .get(
-            request.url,
-            headers: request.headers,
-            body: await request.finalize().toBytes(),
-          )
-          .first; // ignore staleWhileRevalidate second response
-      return res.toStreamedResponse();
-    }
-    return db.inner.send(request);
+  Future<http.StreamedResponse> send(http.BaseRequest request) {
+    return db.send(request);
   }
 }
 

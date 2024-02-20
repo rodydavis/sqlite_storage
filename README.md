@@ -1,4 +1,4 @@
-# signal_db
+# sqlite_storage
 
 Set of helpers for sqlite_async that add convenient APIs for working with common data types.
 

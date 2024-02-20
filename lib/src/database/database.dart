@@ -3,6 +3,7 @@ library sqlite_storage;
 
 import 'dart:async';
 
+import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:http/http.dart' as http;
 
@@ -11,6 +12,7 @@ import '../graph.dart';
 import '../key_value.dart';
 import '../documents.dart';
 import '../requests.dart';
+import 'selectable.dart';
 
 class Database {
   Database(this.db);
@@ -46,6 +48,23 @@ class Database {
 
   Future<void> close() async {
     await db.close();
+  }
+
+  Selectable<T?> query<T>(
+    String table, {
+    String where = '',
+    List<Object?> whereArgs = const [],
+    List<String> columns = const [],
+    required T? Function(Row) mapper,
+  }) {
+    final sql = StringBuffer(
+      'SELECT ${columns.isEmpty ? '*' : columns.join(',')} FROM $table',
+    );
+    final args = [...whereArgs];
+    if (where.isNotEmpty) {
+      sql.write(' WHERE $where');
+    }
+    return db.select(sql.toString(), args: args, mapper: mapper);
   }
 }
 

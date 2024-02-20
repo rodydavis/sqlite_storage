@@ -189,5 +189,15 @@ void main() {
 
       expect(doc.id.isNotEmpty, true);
     });
+
+    // group('json functions', () {
+    //   test('json_extract', () async {
+    //     final col = db.documents.collection('a');
+    //     col.doc('1').set({'name': 'one', 'age': 1});
+    //     col.doc('2').set({'name': 'two', 'age': 2});
+    //     final results = await db.documents.jsonExtract(['name']).get();
+    //     expect(results, ['one', 'two']);
+    //   });
+    // });
   });
 }

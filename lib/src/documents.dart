@@ -10,6 +10,7 @@ import 'database/selectable.dart';
 
 typedef JsonDocument = Map<String, Object?>;
 
+// TODO: jsonB, filters - https://pub.dev/packages/query
 class DocumentDatabase extends Dao {
   DocumentDatabase(super.database);
 
@@ -34,12 +35,17 @@ class DocumentDatabase extends Dao {
     return DocumentSnapshot(Document(this, r['path'] as String), r);
   }
 
-  Selectable<DocumentSnapshot> select() {
+  Selectable<DocumentSnapshot> select([
+    String sql =
+        'SELECT * FROM documents WHERE (ttl IS NOT NULL AND ttl + updated > ?) OR ttl IS NULL',
+    List<Object?> args = const [],
+  ]) {
     return database.db.select(
-      'SELECT * FROM documents WHERE (ttl IS NOT NULL AND ttl + updated > ?) OR ttl IS NULL',
+      sql,
       mapper: _mapper,
       args: [
         DateTime.now().millisecondsSinceEpoch,
+        ...args,
       ],
     );
   }
@@ -62,6 +68,22 @@ class DocumentDatabase extends Dao {
       [DateTime.now().millisecondsSinceEpoch],
     );
   }
+
+  // TODO: https://www.sqlite.org/json1.html#jmini
+  // Selectable<Object?> jsonExtract(
+  //   List<String> keys, {
+  //   String where = '',
+  //   List<Object?> whereArgs = const [],
+  // }) {
+  //   final columns = keys.map((key) => "'\$.$key'").join(',');
+  //   return database.query(
+  //     'documents',
+  //     where: where,
+  //     whereArgs: whereArgs,
+  //     columns: ['json_extract(data, $columns) as value'],
+  //     mapper: (row) => row['value'],
+  //   );
+  // }
 }
 
 const _createSql = '''

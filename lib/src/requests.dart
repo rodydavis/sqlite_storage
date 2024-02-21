@@ -8,6 +8,40 @@ import 'package:cachecontrol/cachecontrol.dart' as cc;
 import 'database/database.dart';
 import 'database/selectable.dart';
 
+const _tableRequestCache = '_request_cache';
+const _tableOfflineQueue = '_offline_queue';
+const _tableOfflineQueueFiles = '_offline_queue_files';
+
+const _createSql = '''
+CREATE TABLE $_tableRequestCache (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    [url] TEXT NOT NULL,
+    headers TEXT NOT NULL,
+    body BLOB NOT NULL,
+    date INTEGER NOT NULL,
+    UNIQUE ([url], headers)
+);
+---
+CREATE TABLE $_tableOfflineQueue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    [url] TEXT NOT NULL,
+    [method] TEXT NOT NULL,
+    [body] BLOB,
+    [headers] TEXT NOT NULL,
+    [retry_count] INTEGER NOT NULL DEFAULT 0,
+    [description] TEXT,
+    [user] TEXT,
+    date INTEGER NOT NULL
+);
+---
+CREATE TABLE $_tableOfflineQueueFiles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    $_tableOfflineQueueFiles INTEGER NOT NULL,
+    [field] TEXT NOT NULL,
+    [value] BLOB NOT NULL
+);
+''';
+
 class RequestsDatabase extends Dao {
   RequestsDatabase(super.database, this.inner);
   final http.Client inner;
@@ -17,7 +51,7 @@ class RequestsDatabase extends Dao {
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down) async {
     if (toVersion == 1) {
       if (down) {
-        await tx.execute('DROP TABLE request_cache');
+        await tx.execute('DROP TABLE $_tableRequestCache');
       } else {
         await tx.execute(_createSql);
       }
@@ -25,7 +59,7 @@ class RequestsDatabase extends Dao {
   }
 
   Selectable<CachedRequest> select([
-    String sql = 'SELECT * FROM request_cache',
+    String sql = 'SELECT * FROM $_tableRequestCache',
     List<Object?> args = const [],
   ]) {
     return database.db.select(
@@ -43,21 +77,21 @@ class RequestsDatabase extends Dao {
   }
 
   Selectable<CachedRequest> getById(int id) {
-    return select('SELECT * FROM request_cache WHERE id = ?', [id]);
+    return select('SELECT * FROM $_tableRequestCache WHERE id = ?', [id]);
   }
 
   Selectable<CachedRequest> getByUrl(Uri url) {
     return select(
-        'SELECT * FROM request_cache WHERE url = ?', [url.toString()]);
+        'SELECT * FROM $_tableRequestCache WHERE url = ?', [url.toString()]);
   }
 
   Future<void> deleteById(int id) async {
-    await database.db.execute('DELETE FROM request_cache WHERE id = ?', [id]);
+    await database.db.execute('DELETE FROM $_tableRequestCache WHERE id = ?', [id]);
   }
 
   Future<void> deleteByUrl(Uri url) async {
     await database.db
-        .execute('DELETE FROM request_cache WHERE url = ?', [url.toString()]);
+        .execute('DELETE FROM $_tableRequestCache WHERE url = ?', [url.toString()]);
   }
 
   Future<Uint8List> setResponse(
@@ -67,7 +101,7 @@ class RequestsDatabase extends Dao {
   ) async {
     final bytes = res.bodyBytes;
     await database.db.execute(
-      'INSERT OR REPLACE INTO request_cache (url, headers, body, date) VALUES (?, ?, ?, ?)',
+      'INSERT OR REPLACE INTO $_tableRequestCache (url, headers, body, date) VALUES (?, ?, ?, ?)',
       [
         uri.toString(),
         jsonEncode(headers),
@@ -208,36 +242,6 @@ extension CachedRequestUtils on CachedRequest {
     return CacheState.stale;
   }
 }
-
-const _createSql = '''
-CREATE TABLE request_cache (
-    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-    [url] TEXT NOT NULL,
-    headers TEXT NOT NULL,
-    body BLOB NOT NULL,
-    date INTEGER NOT NULL,
-    UNIQUE ([url], headers)
-);
----
-CREATE TABLE offline_queue (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    [url] TEXT NOT NULL,
-    [method] TEXT NOT NULL,
-    [body] BLOB,
-    [headers] TEXT NOT NULL,
-    [retry_count] INTEGER NOT NULL DEFAULT 0,
-    [description] TEXT,
-    [user] TEXT,
-    date INTEGER NOT NULL
-);
----
-CREATE TABLE offline_queue_files (
-    id INTEGER PRIMARY KEY AUTOINCREMENT,
-    offline_queue_id INTEGER NOT NULL,
-    [field] TEXT NOT NULL,
-    [value] BLOB NOT NULL
-);
-''';
 
 enum CacheState {
   fresh,

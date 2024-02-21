@@ -4,6 +4,16 @@ import 'package:sqlite_async/sqlite_async.dart';
 
 import 'database/database.dart';
 
+const _table = '_key_value';
+
+const _createSql = '''
+CREATE TABLE $_table (
+  key TEXT PRIMARY KEY,
+  value,
+  UNIQUE(key)
+);
+''';
+
 class KeyValueDatabase extends Dao {
   KeyValueDatabase(super.database);
 
@@ -11,7 +21,7 @@ class KeyValueDatabase extends Dao {
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down) async {
     if (toVersion == 1) {
       if (down) {
-        await tx.execute('DROP TABLE key_value');
+        await tx.execute('DROP TABLE $_table');
       } else {
         await tx.execute(_createSql);
       }
@@ -20,7 +30,7 @@ class KeyValueDatabase extends Dao {
 
   Future<List<Map<String, Object?>>> search(String query) async {
     final result = await database.db.getAll(
-      'SELECT key, value FROM key_value WHERE key LIKE :q OR value LIKE :q',
+      'SELECT key, value FROM $_table WHERE key LIKE :q OR value LIKE :q',
       ['$query%'],
     );
     final items = result.map(
@@ -35,7 +45,7 @@ class KeyValueDatabase extends Dao {
 
   Future<void> remove(String key) async {
     await database.db.execute(
-      'DELETE FROM key_value WHERE key = ?',
+      'DELETE FROM $_table WHERE key = ?',
       [key],
     );
   }
@@ -44,7 +54,7 @@ class KeyValueDatabase extends Dao {
     await database.db.writeTransaction((tx) async {
       for (var key in keys) {
         await tx.execute(
-          'DELETE FROM key_value WHERE key = ?',
+          'DELETE FROM $_table WHERE key = ?',
           [key],
         );
       }
@@ -53,7 +63,7 @@ class KeyValueDatabase extends Dao {
 
   Future<void> set(String key, dynamic value) async {
     await database.db.execute(
-      'INSERT OR REPLACE INTO key_value (key, value) VALUES (?, ?)',
+      'INSERT OR REPLACE INTO $_table (key, value) VALUES (?, ?)',
       [key, value],
     );
   }
@@ -62,7 +72,7 @@ class KeyValueDatabase extends Dao {
     await database.db.writeTransaction((tx) async {
       for (var entry in values.entries) {
         await tx.execute(
-          'INSERT OR REPLACE INTO key_value (key, value) VALUES (?, ?)',
+          'INSERT OR REPLACE INTO $_table (key, value) VALUES (?, ?)',
           [entry.key, entry.value],
         );
       }
@@ -71,7 +81,7 @@ class KeyValueDatabase extends Dao {
 
   Future<Object?> get(String key) async {
     final result = await database.db.getOptional(
-      'SELECT value FROM key_value WHERE key = ?',
+      'SELECT value FROM $_table WHERE key = ?',
       [key],
     );
     if (result == null) return null;
@@ -84,7 +94,7 @@ class KeyValueDatabase extends Dao {
   }) {
     return database.db
         .watch(
-          'SELECT value FROM key_value WHERE key = ?',
+          'SELECT value FROM $_table WHERE key = ?',
           parameters: [key],
           throttle: throttle,
         )
@@ -92,7 +102,7 @@ class KeyValueDatabase extends Dao {
   }
 
   Future<Map<String, Object?>> getAll() async {
-    final result = await database.db.getAll('SELECT * FROM key_value');
+    final result = await database.db.getAll('SELECT * FROM $_table');
     return Map<String, Object?>.fromEntries(result.map(
       (row) => MapEntry(
         row['key'] as String,
@@ -105,7 +115,7 @@ class KeyValueDatabase extends Dao {
     Duration throttle = const Duration(milliseconds: 30),
     List<String> keys = const [],
   }) {
-    final sql = StringBuffer('SELECT * FROM key_value');
+    final sql = StringBuffer('SELECT * FROM $_table');
     if (keys.isNotEmpty) {
       sql.write(' WHERE key IN (');
       sql.writeAll(keys.map((e) => '?'), ',');
@@ -121,7 +131,7 @@ class KeyValueDatabase extends Dao {
   }
 
   Future<void> clear() async {
-    await database.db.execute('DELETE FROM key_value');
+    await database.db.execute('DELETE FROM $_table');
   }
 
   Future<String?> getString(String key) async {
@@ -413,11 +423,3 @@ class KeyValueDatabase extends Dao {
     });
   }
 }
-
-const _createSql = '''
-CREATE TABLE key_value (
-  key TEXT PRIMARY KEY,
-  value,
-  UNIQUE(key)
-);
-''';

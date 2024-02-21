@@ -5,19 +5,22 @@ import 'package:sqlite_async/sqlite_async.dart';
 import 'database/database.dart';
 import 'database/selectable.dart';
 
+const _tableNodes = '_nodes';
+const _tableEdges = '_edges';
+
 const _createSql = '''
-CREATE TABLE IF NOT EXISTS nodes (
+CREATE TABLE IF NOT EXISTS $_tableNodes (
     body TEXT NOT NULL,
     id   TEXT GENERATED ALWAYS AS (json_extract(body, '\$.id')) VIRTUAL NOT NULL UNIQUE
 );
 ---
-CREATE TABLE IF NOT EXISTS edges (
+CREATE TABLE IF NOT EXISTS $_tableEdges (
     source     TEXT NOT NULL,
     target     TEXT NOT NULL,
     properties TEXT NOT NULL,
     UNIQUE(source, target, properties) ON CONFLICT REPLACE,
-    FOREIGN KEY(source) REFERENCES nodes(id),
-    FOREIGN KEY(target) REFERENCES nodes(id)
+    FOREIGN KEY(source) REFERENCES $_tableNodes(id),
+    FOREIGN KEY(target) REFERENCES $_tableNodes(id)
 );
 ''';
 
@@ -41,8 +44,8 @@ class GraphDatabase extends Dao {
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down) async {
     if (toVersion == 1) {
       if (down) {
-        await tx.execute('DROP TABLE nodes');
-        await tx.execute('DROP TABLE edges');
+        await tx.execute('DROP TABLE $_tableNodes');
+        await tx.execute('DROP TABLE $_tableEdges');
         await tx.execute('DROP INDEX id_idx');
         await tx.execute('DROP INDEX source_idx');
         await tx.execute('DROP INDEX target_idx');
@@ -56,7 +59,7 @@ class GraphDatabase extends Dao {
   }
 
   Selectable<Node> selectNodes([
-    String sql = 'SELECT * FROM nodes',
+    String sql = 'SELECT * FROM $_tableNodes',
     List<Object?> args = const [],
   ]) {
     return database.db.select(
@@ -70,7 +73,7 @@ class GraphDatabase extends Dao {
   }
 
   Selectable<Edge> selectEdges([
-    String sql = 'SELECT * FROM edges',
+    String sql = 'SELECT * FROM $_tableEdges',
     List<Object?> args = const [],
   ]) {
     return database.db.select(
@@ -87,7 +90,7 @@ class GraphDatabase extends Dao {
 
   Future<void> deleteEdge(String source, String target) async {
     await database.db.execute(
-      'DELETE FROM edges WHERE source = ? AND target = ?',
+      'DELETE FROM $_tableEdges WHERE source = ? AND target = ?',
       [source, target],
     );
   }
@@ -97,12 +100,12 @@ class GraphDatabase extends Dao {
     bool cascade = true,
   }) async {
     await database.db.execute(
-      'DELETE FROM nodes WHERE id = ?',
+      'DELETE FROM $_tableNodes WHERE id = ?',
       [id],
     );
     if (cascade) {
       await database.db.execute(
-        'DELETE FROM edges WHERE source = ? OR target = ?',
+        'DELETE FROM $_tableEdges WHERE source = ? OR target = ?',
         [id, id],
       );
     }
@@ -114,7 +117,7 @@ class GraphDatabase extends Dao {
     Map<String, Object?> properties = const {},
   ]) async {
     await database.db.execute(
-      'INSERT INTO edges (source, target, properties) VALUES (?, ?, ?)',
+      'INSERT INTO $_tableEdges (source, target, properties) VALUES (?, ?, ?)',
       [source, target, jsonEncode(properties)],
     );
     return (source: source, target: target, properties: properties);
@@ -126,29 +129,29 @@ class GraphDatabase extends Dao {
       'id must be a non-empty string',
     );
     await database.db.execute(
-      'INSERT INTO nodes (body) VALUES (?)',
+      'INSERT INTO $_tableNodes (body) VALUES (?)',
       [jsonEncode(data)],
     );
     return (id: data['id'] as String, body: data);
   }
 
   Selectable<Edge> selectEdgesInbound(String source) {
-    return selectEdges('SELECT * FROM edges WHERE source = ?', [source]);
+    return selectEdges('SELECT * FROM $_tableEdges WHERE source = ?', [source]);
   }
 
   Selectable<Edge> selectEdgesOutbound(String target) {
-    return selectEdges('SELECT * FROM edges WHERE target = ?', [target]);
+    return selectEdges('SELECT * FROM $_tableEdges WHERE target = ?', [target]);
   }
 
   Selectable<Edge> selectSearchEdges(String source, String target) {
     return selectEdges(
-      'SELECT * FROM edges WHERE source = ? UNION SELECT * FROM edges WHERE target = ?',
+      'SELECT * FROM $_tableEdges WHERE source = ? UNION SELECT * FROM $_tableEdges WHERE target = ?',
       [source, target],
     );
   }
 
   Selectable<Node> selectNodeById(String id) {
-    return selectNodes('SELECT * FROM nodes WHERE id = ?', [id]);
+    return selectNodes('SELECT * FROM $_tableNodes WHERE id = ?', [id]);
   }
 
   Selectable<String> selectTraverseInbound(String source) {
@@ -157,7 +160,7 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(id) AS (
         SELECT :source
         UNION
-        SELECT source FROM edges JOIN traverse ON target = id
+        SELECT source FROM $_tableEdges JOIN traverse ON target = id
       ) SELECT id FROM traverse;
       ''',
       args: [source],
@@ -171,7 +174,7 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(id) AS (
         SELECT :source
         UNION
-        SELECT target FROM edges JOIN traverse ON source = id
+        SELECT target FROM $_tableEdges JOIN traverse ON source = id
       ) SELECT id FROM traverse;
       ''',
       args: [target],
@@ -185,9 +188,9 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(x, y, obj) AS (
         SELECT :source, '()', '{}'
         UNION
-        SELECT id, '()', body FROM nodes JOIN traverse ON id = x
+        SELECT id, '()', body FROM $_tableNodes JOIN traverse ON id = x
         UNION
-        SELECT source, '<-', properties FROM edges JOIN traverse ON target = x
+        SELECT source, '<-', properties FROM $_tableEdges JOIN traverse ON target = x
       ) SELECT x, y, obj FROM traverse;
       ''',
       args: [target],
@@ -205,9 +208,9 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(x, y, obj) AS (
         SELECT :source, '()', '{}'
         UNION
-        SELECT id, '()', body FROM nodes JOIN traverse ON id = x
+        SELECT id, '()', body FROM $_tableNodes JOIN traverse ON id = x
         UNION
-        SELECT target, '->', properties FROM edges JOIN traverse ON source = x
+        SELECT target, '->', properties FROM $_tableEdges JOIN traverse ON source = x
       ) SELECT x, y, obj FROM traverse;
       ''',
       args: [target],
@@ -225,11 +228,11 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(x, y, obj) AS (
         SELECT :source, '()', '{}'
         UNION
-        SELECT id, '()', body FROM nodes JOIN traverse ON id = x
+        SELECT id, '()', body FROM $_tableNodes JOIN traverse ON id = x
         UNION
-        SELECT source, '<-', properties FROM edges JOIN traverse ON target = x
+        SELECT source, '<-', properties FROM $_tableEdges JOIN traverse ON target = x
         UNION
-        SELECT target, '->', properties FROM edges JOIN traverse ON source = x
+        SELECT target, '->', properties FROM $_tableEdges JOIN traverse ON source = x
       ) SELECT x, y, obj FROM traverse;
       ''',
       args: [target],
@@ -247,9 +250,9 @@ class GraphDatabase extends Dao {
       WITH RECURSIVE traverse(id) AS (
         SELECT :source
         UNION
-        SELECT source FROM edges JOIN traverse ON target = id
+        SELECT source FROM $_tableEdges JOIN traverse ON target = id
         UNION
-        SELECT target FROM edges JOIN traverse ON source = id
+        SELECT target FROM $_tableEdges JOIN traverse ON source = id
       ) SELECT id FROM traverse;
       ''',
       args: [target],
@@ -264,7 +267,7 @@ class GraphDatabase extends Dao {
     );
     final id = data['id'] as String;
     await database.db.execute(
-      'UPDATE nodes SET body = ? WHERE id = ?',
+      'UPDATE $_tableNodes SET body = ? WHERE id = ?',
       [jsonEncode(data), id],
     );
   }

@@ -10,6 +10,19 @@ import 'database/selectable.dart';
 
 typedef JsonDocument = Map<String, Object?>;
 
+const _table = '_documents';
+
+const _createSql = '''
+CREATE TABLE $_table (
+  path TEXT PRIMARY KEY,
+  data TEXT,
+  ttl INTEGER,
+  created INTEGER NOT NULL,
+  updated INTEGER NOT NULL,
+  UNIQUE(path)
+);
+''';
+
 // TODO: jsonB, filters - https://pub.dev/packages/query
 class DocumentDatabase extends Dao {
   DocumentDatabase(super.database);
@@ -18,7 +31,7 @@ class DocumentDatabase extends Dao {
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down) async {
     if (toVersion == 1) {
       if (down) {
-        await tx.execute('DROP TABLE documents');
+        await tx.execute('DROP TABLE $_table');
       } else {
         await tx.execute(_createSql);
       }
@@ -37,7 +50,7 @@ class DocumentDatabase extends Dao {
 
   Selectable<DocumentSnapshot> select([
     String sql =
-        'SELECT * FROM documents WHERE (ttl IS NOT NULL AND ttl + updated > ?) OR ttl IS NULL',
+        'SELECT * FROM $_table WHERE (ttl IS NOT NULL AND ttl + updated > ?) OR ttl IS NULL',
     List<Object?> args = const [],
   ]) {
     return database.db.select(
@@ -52,19 +65,19 @@ class DocumentDatabase extends Dao {
 
   Selectable<DocumentSnapshot> query(String query) {
     return database.db.select(
-      'SELECT * FROM documents WHERE path LIKE :query OR data LIKE :query',
+      'SELECT * FROM $_table WHERE path LIKE :query OR data LIKE :query',
       args: ['%$query%'],
       mapper: _mapper,
     );
   }
 
   Future<void> clear() async {
-    await database.db.execute('DELETE FROM documents');
+    await database.db.execute('DELETE FROM $_table');
   }
 
   Future<void> removeExpired() async {
     await database.db.execute(
-      'DELETE FROM documents WHERE ttl IS NOT NULL AND ttl + updated < :date',
+      'DELETE FROM $_table WHERE ttl IS NOT NULL AND ttl + updated < :date',
       [DateTime.now().millisecondsSinceEpoch],
     );
   }
@@ -82,7 +95,7 @@ class DocumentDatabase extends Dao {
   // }) {
   //   final columns = keys.map((key) => "'\$.$key'").join(',');
   //   return database.query(
-  //     'documents',
+  //     '$_table',
   //     where: where,
   //     whereArgs: whereArgs,
   //     columns: ['json_extract(data, $columns) as value'],
@@ -90,17 +103,6 @@ class DocumentDatabase extends Dao {
   //   );
   // }
 }
-
-const _createSql = '''
-CREATE TABLE documents (
-  path TEXT PRIMARY KEY,
-  data TEXT,
-  ttl INTEGER,
-  created INTEGER NOT NULL,
-  updated INTEGER NOT NULL,
-  UNIQUE(path)
-);
-''';
 
 class Document {
   Document(this.db, this.path);
@@ -113,7 +115,7 @@ class Document {
 
   Future<void> set(JsonDocument data) async {
     var exists = await db.database.db.getOptional(
-      'SELECT * FROM documents WHERE path = :path',
+      'SELECT * FROM $_table WHERE path = :path',
       [path],
     );
     if (exists != null && _expired(exists)) {
@@ -122,7 +124,7 @@ class Document {
     }
     if (exists != null) {
       final sql = StringBuffer(
-        'UPDATE documents SET data = :data, updated = :date',
+        'UPDATE $_table SET data = :data, updated = :date',
       );
       final args = [
         jsonEncode(data),
@@ -139,7 +141,7 @@ class Document {
         DateTime.now().millisecondsSinceEpoch,
         DateTime.now().millisecondsSinceEpoch,
       ];
-      final sql = StringBuffer('INSERT INTO documents (');
+      final sql = StringBuffer('INSERT INTO $_table (');
       sql.writeAll(columns, ', ');
       sql.write(') VALUES (');
       sql.writeAll(columns.map((_) => '?'), ', ');
@@ -164,14 +166,14 @@ class Document {
 
   Future<void> remove() {
     return db.database.db.execute(
-      'DELETE FROM documents WHERE path = :path',
+      'DELETE FROM $_table WHERE path = :path',
       [path],
     );
   }
 
   Future<DocumentSnapshot?> get() async {
     return await db.database.db.getOptional(
-      'SELECT * FROM documents WHERE path = :path',
+      'SELECT * FROM $_table WHERE path = :path',
       [path],
     ).then((value) => DocumentSnapshot(this, value));
   }
@@ -181,7 +183,7 @@ class Document {
   }) {
     return db.database.db
         .watch(
-      'SELECT * FROM documents WHERE path = :path',
+      'SELECT * FROM $_table WHERE path = :path',
       parameters: [path],
       throttle: throttle,
     )
@@ -193,7 +195,7 @@ class Document {
 
   Future<void> setTTl(Duration ttl) async {
     await db.database.db.execute(
-      'UPDATE documents SET ttl = :ttl, updated = :date WHERE path = :path',
+      'UPDATE $_table SET ttl = :ttl, updated = :date WHERE path = :path',
       [
         ttl.inMilliseconds,
         DateTime.now().millisecondsSinceEpoch,
@@ -204,7 +206,7 @@ class Document {
 
   Future<void> removeTTl() async {
     await db.database.db.execute(
-      'UPDATE documents SET ttl = NULL, updated = :date WHERE path = :path',
+      'UPDATE $_table SET ttl = NULL, updated = :date WHERE path = :path',
       [
         DateTime.now().millisecondsSinceEpoch,
         path,
@@ -264,14 +266,14 @@ class Collection {
 
   Future<void> clear() async {
     await db.database.db.execute(
-      'DELETE FROM documents WHERE path LIKE :prefix',
+      'DELETE FROM $_table WHERE path LIKE :prefix',
       ['$prefix%'],
     );
   }
 
   Selectable<DocumentSnapshot> select() {
     return db.database.db.select(
-      'SELECT * FROM documents WHERE path LIKE :prefix',
+      'SELECT * FROM $_table WHERE path LIKE :prefix',
       args: ['$prefix%'],
       mapper: db.database.documents._mapper,
     );
@@ -281,7 +283,7 @@ class Collection {
     await db.database.db.writeTransaction((tx) async {
       for (final entry in values.entries) {
         await tx.execute(
-          'INSERT INTO documents (path, data, created, updated) VALUES (:path, :data, :date, :date)',
+          'INSERT INTO $_table (path, data, created, updated) VALUES (:path, :data, :date, :date)',
           [
             prefix + entry.key,
             jsonEncode(entry.value),
@@ -296,7 +298,7 @@ class Collection {
     await db.database.db.writeTransaction((tx) async {
       for (final id in ids) {
         await tx.execute(
-          'DELETE FROM documents WHERE path = :path',
+          'DELETE FROM $_table WHERE path = :path',
           [prefix + id],
         );
       }

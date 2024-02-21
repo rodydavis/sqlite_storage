@@ -5,6 +5,18 @@ import 'package:sqlite_async/sqlite_async.dart';
 import 'database/database.dart';
 import 'database/selectable.dart';
 
+const _table = '_files';
+
+const _createSql = '''
+CREATE TABLE $_table (
+  path TEXT PRIMARY KEY,
+  data BLOB,
+  created INTEGER,
+  updated INTEGER,
+  UNIQUE (path)
+);
+''';
+
 class FilesDatabase extends Dao {
   FilesDatabase(super.database);
 
@@ -12,7 +24,7 @@ class FilesDatabase extends Dao {
   Future<void> migrate(int toVersion, SqliteWriteContext tx, bool down) async {
     if (toVersion == 1) {
       if (down) {
-        await tx.execute('DROP TABLE files');
+        await tx.execute('DROP TABLE $_table');
       } else {
         await tx.execute(_createSql);
       }
@@ -21,7 +33,7 @@ class FilesDatabase extends Dao {
 
   Selectable<List<int>?> selectAsBytes(String path) {
     return database.db.select(
-      'SELECT data FROM files WHERE path = ?',
+      'SELECT data FROM $_table WHERE path = ?',
       args: [path],
       mapper: (row) => row['data'] as List<int>?,
     );
@@ -49,12 +61,12 @@ class FilesDatabase extends Dao {
 
   Future<void> writeAsBytes(String path, List<int> data) async {
     final existing = await database.db.getOptional(
-      'SELECT path FROM files WHERE path = ?',
+      'SELECT path FROM $_table WHERE path = ?',
       [path],
     );
     if (existing == null) {
       await database.db.execute(
-        'INSERT INTO files (path, data, created, updated) VALUES (?, ?, ?, ?)',
+        'INSERT INTO $_table (path, data, created, updated) VALUES (?, ?, ?, ?)',
         [
           path,
           data,
@@ -64,7 +76,7 @@ class FilesDatabase extends Dao {
       );
     } else {
       await database.db.execute(
-        'UPDATE files SET data = ?, updated = ? WHERE path = ?',
+        'UPDATE $_table SET data = ?, updated = ? WHERE path = ?',
         [data, DateTime.now().millisecondsSinceEpoch, path],
       );
     }
@@ -76,7 +88,7 @@ class FilesDatabase extends Dao {
 
   Future<bool> exists(String path) async {
     final result = await database.db.getOptional(
-      'SELECT path FROM files WHERE path = ?',
+      'SELECT path FROM $_table WHERE path = ?',
       [path],
     );
     return result != null;
@@ -84,7 +96,7 @@ class FilesDatabase extends Dao {
 
   Future<Metadata> metadata(String path) async {
     final result = await database.db.getOptional(
-      'SELECT created, updated FROM files WHERE path = ?',
+      'SELECT created, updated FROM $_table WHERE path = ?',
       [path],
     );
     if (result == null) {
@@ -98,25 +110,15 @@ class FilesDatabase extends Dao {
 
   Future<void> delete(String path) async {
     await database.db.execute(
-      'DELETE FROM files WHERE path = ?',
+      'DELETE FROM $_table WHERE path = ?',
       [path],
     );
   }
 
   Future<void> clear() async {
-    await database.db.execute('DELETE FROM files');
+    await database.db.execute('DELETE FROM $_table');
   }
 }
-
-const _createSql = '''
-CREATE TABLE files (
-  path TEXT PRIMARY KEY,
-  data BLOB,
-  created INTEGER,
-  updated INTEGER,
-  UNIQUE (path)
-);
-''';
 
 typedef Metadata = ({
   DateTime created,

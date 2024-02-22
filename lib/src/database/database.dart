@@ -7,10 +7,12 @@ import 'package:sqlite_async/sqlite3.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 import 'package:http/http.dart' as http;
 
+import '../analytics.dart';
 import '../files.dart';
 import '../graph.dart';
 import '../key_value.dart';
 import '../documents.dart';
+import '../logging.dart';
 import '../requests.dart';
 import 'selectable.dart';
 
@@ -23,6 +25,8 @@ class Database {
   late final documents = DocumentDatabase(this);
   late final files = FilesDatabase(this);
   late final graph = GraphDatabase(this);
+  late final logging = LoggingDatabase(this);
+  late final analytics = AnalyticsDatabase(this);
   late final requests = RequestsDatabase(this, innerClient);
 
   List<Dao> get daos => [
@@ -30,6 +34,8 @@ class Database {
         documents,
         files,
         graph,
+        logging,
+        analytics,
         requests,
       ];
 

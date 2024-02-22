@@ -7,5 +7,5 @@ export 'src/key_value.dart';
 export 'src/files.dart';
 export 'src/graph.dart';
 export 'src/requests.dart';
-
-// TODO: Tables - Analytics, logging
+export 'src/logging.dart';
+export 'src/analytics.dart';

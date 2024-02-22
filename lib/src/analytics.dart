@@ -56,7 +56,7 @@ class AnalyticsDatabase extends Dao {
     );
   }
 
-  Future<void> log(
+  Future<void> _log(
     String type, {
     Map<String, dynamic> parameters = const {},
   }) async {
@@ -79,7 +79,7 @@ class AnalyticsDatabase extends Dao {
   }) async {
     final args = parameters ?? {};
     args['viewName'] = viewName;
-    await log('screenView', parameters: args);
+    await _log('screenView', parameters: args);
   }
 
   Future<void> sendEvent(
@@ -98,7 +98,7 @@ class AnalyticsDatabase extends Dao {
     if (value != null) {
       args['value'] = value;
     }
-    await log('event', parameters: args);
+    await _log('event', parameters: args);
   }
 
   Future<void> sendSocial(String network, String action, String target) async {
@@ -106,7 +106,7 @@ class AnalyticsDatabase extends Dao {
     args['network'] = network;
     args['action'] = action;
     args['target'] = target;
-    await log('social', parameters: args);
+    await _log('social', parameters: args);
   }
 
   Future<void> sendTiming(
@@ -124,7 +124,7 @@ class AnalyticsDatabase extends Dao {
     if (category != null) {
       args['category'] = category;
     }
-    await log('timing', parameters: args);
+    await _log('timing', parameters: args);
   }
 
   Future<void> sendException(
@@ -136,7 +136,7 @@ class AnalyticsDatabase extends Dao {
     if (fatal != null) {
       args['fatal'] = fatal;
     }
-    await log('exception', parameters: args);
+    await _log('exception', parameters: args);
   }
 
   AnalyticsTimer startTimer(

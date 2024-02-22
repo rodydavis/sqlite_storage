@@ -28,7 +28,7 @@ await db.open();
 await db.close();
 ```
 
-## Key/Value
+### Key/Value
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -92,7 +92,7 @@ final value = await kv.getJson('key'); // Object?
 final stream = kv.watchJson('key'); // Stream<Object?>
 ```
 
-## Documents
+### Documents
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -121,7 +121,7 @@ final stream = collection.select().watch(); // Stream<List<Map<String, dynamic>>
 final doc = docs.collection('collection').doc('id-1').collection('sub-collection').doc('id-2');
 ```
 
-## Files
+### Files
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -151,7 +151,7 @@ await files.delete('path');
 await files.clear();
 ```
 
-## Requests
+### Requests
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -177,7 +177,7 @@ await for (final res in response) {
 }
 ```
 
-## Graph
+### Graph
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -229,6 +229,32 @@ final nodes = await graph.selectTraverseBodies(node.id).get();
 
 // Traverse
 final nodes = await graph.selectTraverse(node.id).get();
+```
+
+### Logging
+
+```dart
+import 'package:sqlite_storage/sqlite_storage.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+
+final Database db = ...;
+final log = db.logging;
+
+await log.log('message', level: 1);
+final logs = await log.select().get();
+```
+
+### Analytics
+
+```dart
+import 'package:sqlite_storage/sqlite_storage.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+
+final Database db = ...;
+final analytics = db.analytics;
+
+await analytics.sendEvent('event', 'test');
+final events = await analytics.select().get();
 ```
 
 ## Contributing

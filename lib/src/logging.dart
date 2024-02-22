@@ -13,7 +13,7 @@ const _createSql = '''
 CREATE TABLE $_table (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   message TEXT,
-  time TEXT,
+  time INTEGER NOT NULL,
   sequence_number INTEGER,
   level INTEGER NOT NULL,
   name TEXT NOT NULL,
@@ -60,7 +60,7 @@ class LoggingDatabase extends Dao {
   LogEvent _mapper(Row row) {
     return (
       message: row['message'] as String,
-      time: DateTime.parse(row['time'] as String),
+      time: DateTime.fromMillisecondsSinceEpoch(row['time'] as int),
       sequenceNumber: row['sequence_number'] as int?,
       level: row['level'] as int,
       name: row['name'] as String,
@@ -95,7 +95,7 @@ class LoggingDatabase extends Dao {
       _insertSql,
       [
         message,
-        (time ?? DateTime.now()).toIso8601String(),
+        (time ?? DateTime.now()).millisecondsSinceEpoch,
         sequenceNumber,
         level,
         name,
@@ -105,11 +105,15 @@ class LoggingDatabase extends Dao {
     );
   }
 
-  Selectable<LogEvent> select() {
-    return database.db.select(
-      'SELECT * FROM $_table',
-      mapper: _mapper,
-    );
+  Selectable<LogEvent> select([
+    String sql = 'SELECT * FROM $_table',
+    List<Object?> args = const [],
+  ]) {
+    return database.db.select(sql, mapper: _mapper, args: args);
+  }
+
+  Selectable<LogEvent> query(LogsQuery q) {
+    return select(q.query.$1, q.query.$2);
   }
 }
 
@@ -122,3 +126,76 @@ typedef LogEvent = ({
   String? error,
   String? stackTrace,
 });
+
+class LogsQuery {
+  final (String, List<Object?>) query;
+
+  bool get containsWhere => query.$1.contains('WHERE');
+
+  const LogsQuery({
+    this.query = ('SELECT * FROM $_table', const []),
+  });
+
+  LogsQuery timeAfter(DateTime time) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} time > ?',
+        [...query.$2, time.millisecondsSinceEpoch],
+      ),
+    );
+  }
+
+  LogsQuery timeBefore(DateTime time) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} time < ?',
+        [...query.$2, time.millisecondsSinceEpoch],
+      ),
+    );
+  }
+
+  LogsQuery level(int level) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} level = ?',
+        [...query.$2, level],
+      ),
+    );
+  }
+
+  LogsQuery levelGreaterThanOrEqualTo(int level) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} level >= ?',
+        [...query.$2, level],
+      ),
+    );
+  }
+
+  LogsQuery levelGreaterThan(int level) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} level > ?',
+        [...query.$2, level],
+      ),
+    );
+  }
+
+  LogsQuery levelLessThanOrEqualTo(int level) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} level <= ?',
+        [...query.$2, level],
+      ),
+    );
+  }
+
+  LogsQuery levelLessThan(int level) {
+    return LogsQuery(
+      query: (
+        '${query.$1} ${containsWhere ? 'AND' : 'WHERE'} level < ?',
+        [...query.$2, level],
+      ),
+    );
+  }
+}

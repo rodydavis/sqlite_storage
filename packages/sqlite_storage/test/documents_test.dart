@@ -170,6 +170,19 @@ void main() {
       ]);
     });
 
+    test('paging', () async {
+      final col = db.documents.collection('a');
+      for (var i = 0; i < 100; i++) {
+        await col.doc('$i').set({'name': 'node $i'});
+      }
+
+      final count = await col.getCount();
+      expect(count, 100);
+
+      final results = await col.select().get(limit: 10);
+      expect(results.length, 10);
+    });
+
     test('ttl', () async {
       final doc = db.documents.doc('a', '1');
       await doc.set({'name': 'one'});

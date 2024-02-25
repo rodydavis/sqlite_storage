@@ -86,22 +86,6 @@ class DocumentDatabase extends Dao {
   Future<void> open() async {
     await removeExpired();
   }
-
-  // TODO: https://www.sqlite.org/json1.html#jmini
-  // Selectable<Object?> jsonExtract(
-  //   List<String> keys, {
-  //   String where = '',
-  //   List<Object?> whereArgs = const [],
-  // }) {
-  //   final columns = keys.map((key) => "'\$.$key'").join(',');
-  //   return database.query(
-  //     '$_table',
-  //     where: where,
-  //     whereArgs: whereArgs,
-  //     columns: ['json_extract(data, $columns) as value'],
-  //     mapper: (row) => row['value'],
-  //   );
-  // }
 }
 
 class Document {
@@ -226,6 +210,22 @@ class Document {
 
   @override
   int get hashCode => path.hashCode;
+
+  // TODO: https://www.sqlite.org/json1.html#jmini
+  // Selectable<Object?> jsonExtract(
+  //   List<String> keys, {
+  //   String where = '',
+  //   List<Object?> whereArgs = const [],
+  // }) {
+  //   final columns = keys.map((key) => "'\$.$key'").join(',');
+  //   return database.query(
+  //     '$_table',
+  //     where: where,
+  //     whereArgs: whereArgs,
+  //     columns: ['json_extract(data, $columns) as value'],
+  //     mapper: (row) => row['value'],
+  //   );
+  // }
 }
 
 class DocumentSnapshot extends Document {
@@ -273,10 +273,30 @@ class Collection {
 
   Selectable<DocumentSnapshot> select() {
     return db.database.db.select(
-      'SELECT * FROM $_table WHERE path LIKE :prefix',
+      'SELECT * FROM $_table WHERE path LIKE :prefix ORDER BY created',
       args: ['$prefix%'],
       mapper: db.database.documents._mapper,
     );
+  }
+
+  Future<int> getCount() async {
+    final row = await db.database.db.get(
+      'SELECT COUNT(*) AS count FROM $_table WHERE path LIKE :prefix',
+      ['$prefix%'],
+    );
+    return row['count'] as int;
+  }
+
+  Stream<int> watchCount({
+    Duration throttle = const Duration(milliseconds: 30),
+  }) {
+    return db.database.db
+        .watch(
+          'SELECT COUNT(*) AS count FROM $_table WHERE path LIKE :prefix',
+          parameters: ['$prefix%'],
+          throttle: throttle,
+        )
+        .map((results) => results.first['count'] as int);
   }
 
   Future<void> addAll(Map<String, JsonDocument> values) async {

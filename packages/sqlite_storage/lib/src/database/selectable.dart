@@ -39,20 +39,6 @@ class Selectable<T> {
     return item == null ? null : mapper(item);
   }
 
-  Future<List<T>> get() async {
-    final items = await db.getAll(sql, args);
-    return items.map(mapper).toList();
-  }
-
-  Stream<List<T>> watch({
-    Duration throttle = const Duration(milliseconds: 30),
-  }) async* {
-    final stream = db.watch(sql, parameters: args, throttle: throttle);
-    await for (final results in stream) {
-      yield results.map(mapper).toList();
-    }
-  }
-
   Stream<T?> watchSingleOrNull({
     Duration throttle = const Duration(milliseconds: 30),
   }) async* {
@@ -68,6 +54,55 @@ class Selectable<T> {
     final stream = db.watch(sql, parameters: args, throttle: throttle);
     await for (final results in stream) {
       yield mapper(results.first);
+    }
+  }
+
+  Future<List<T>> get({
+    int? limit,
+    int? offset,
+  }) async {
+    final sb = StringBuffer(
+      sql.endsWith(';') ? sql.substring(0, sql.length - 1) : sql,
+    );
+    if (limit != null) {
+      sb.write(' LIMIT :limit');
+    }
+    if (offset != null) {
+      sb.write(' OFFSET :offset');
+    }
+    final items = await db.getAll(sb.toString(), [
+      ...args.toList(),
+      if (limit != null) limit,
+      if (offset != null) offset,
+    ]);
+    return items.map(mapper).toList();
+  }
+
+  Stream<List<T>> watch({
+    int? limit,
+    int? offset,
+    Duration throttle = const Duration(milliseconds: 30),
+  }) async* {
+    final sb = StringBuffer(
+      sql.endsWith(';') ? sql.substring(0, sql.length - 1) : sql,
+    );
+    if (limit != null) {
+      sb.write(' LIMIT :limit');
+    }
+    if (offset != null) {
+      sb.write(' OFFSET :offset');
+    }
+    final stream = db.watch(
+      sb.toString(),
+      parameters: [
+        ...args.toList(),
+        if (limit != null) limit,
+        if (offset != null) offset,
+      ],
+      throttle: throttle,
+    );
+    await for (final results in stream) {
+      yield results.map(mapper).toList();
     }
   }
 }

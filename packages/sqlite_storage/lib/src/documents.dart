@@ -212,20 +212,16 @@ class Document {
   int get hashCode => path.hashCode;
 
   // TODO: https://www.sqlite.org/json1.html#jmini
-  // Selectable<Object?> jsonExtract(
-  //   List<String> keys, {
-  //   String where = '',
-  //   List<Object?> whereArgs = const [],
-  // }) {
-  //   final columns = keys.map((key) => "'\$.$key'").join(',');
-  //   return database.query(
-  //     '$_table',
-  //     where: where,
-  //     whereArgs: whereArgs,
-  //     columns: ['json_extract(data, $columns) as value'],
-  //     mapper: (row) => row['value'],
-  //   );
-  // }
+  Selectable<Object?> jsonExtract(List<String> columns) {
+    final fields = columns.map((key) => "'\$.$key'").join(',');
+    return db.database.query(
+      _table,
+      where: 'path = :path',
+      whereArgs: [path],
+      columns: ['json_extract(data, $fields) as value'],
+      mapper: (row) => row['value'],
+    );
+  }
 }
 
 class DocumentSnapshot extends Document {

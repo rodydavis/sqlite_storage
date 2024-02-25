@@ -11,6 +11,10 @@ void main() async {
   final dbPath = '${appDir.path}/app.db';
   db = Database(SqliteDatabase(path: dbPath));
   await db.open();
+  final col = db.documents.collection('test');
+  for (var i = 0; i < 10; i++) {
+    await col.doc('$i').set({'value': i, 'name': 'item $i'});
+  }
   runApp(const MyApp());
 }
 
@@ -41,7 +45,10 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
         useMaterial3: true,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      // home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: DocumentsList(
+        collection: db.documents.collection('test'),
+      ),
     );
   }
 }
@@ -136,6 +143,58 @@ class _MyHomePageState extends State<MyHomePage> {
         tooltip: 'Increment',
         child: const Icon(Icons.add),
       ), // This trailing comma makes auto-formatting nicer for build methods.
+    );
+  }
+}
+
+class DocumentsList extends StatefulWidget {
+  const DocumentsList({super.key, required this.collection});
+
+  final Collection collection;
+
+  @override
+  State<DocumentsList> createState() => _DocumentsListState();
+}
+
+class _DocumentsListState extends State<DocumentsList> {
+  late final docs = widget.collection.select().watch();
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Documents'),
+      ),
+      body: StreamBuilder<List<DocumentSnapshot>>(
+        stream: docs,
+        builder: (context, snapshot) {
+          if (snapshot.hasError) {
+            return Text('Error: ${snapshot.error}');
+          }
+          if (!snapshot.hasData) {
+            return const Text('Loading...');
+          }
+          return ListView.builder(
+            itemCount: snapshot.data!.length,
+            itemBuilder: (context, index) {
+              final doc = snapshot.data![index];
+              return ListTile(
+                title: Text(doc.path),
+                subtitle: Text(doc.data.toString()),
+                onTap: () async {
+                  final messenger = ScaffoldMessenger.of(context);
+                  final val = await doc
+                      .jsonExtract(['value', 'name']).getSingleOrNull();
+                  messenger.hideCurrentSnackBar();
+                  messenger.showSnackBar(
+                    SnackBar(content: Text('Value: $val')),
+                  );
+                },
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }

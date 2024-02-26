@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:sqlite_async/sqlite_async.dart';
@@ -42,11 +43,14 @@ void main() {
     });
 
     test('metadata', () async {
-      const path = 'mypath/test';
-      await db.files.writeAsString(path, 'hello');
+      const path = 'mypath/test.txt';
+      const raw = 'hello';
+      await db.files.writeAsString(path, raw);
       final result = await db.files.metadata(path);
       expect(result.created, isA<DateTime>());
       expect(result.updated, isA<DateTime>());
+      expect(result.size, utf8.encode(raw).length);
+      expect(result.mimeType, 'text/plain');
     });
 
     test('watch', () async {

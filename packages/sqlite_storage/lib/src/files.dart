@@ -42,22 +42,6 @@ class FilesDatabase extends Dao {
     );
   }
 
-  Selectable<int?> selectSize(String path) {
-    return database.db.select(
-      'SELECT size FROM $_table WHERE path = ?',
-      args: [path],
-      mapper: (row) => row['size'] as int?,
-    );
-  }
-
-  Selectable<String?> selectMimeType(String path) {
-    return database.db.select(
-      'SELECT mime_type FROM $_table WHERE path = ?',
-      args: [path],
-      mapper: (row) => row['mime_type'] as String?,
-    );
-  }
-
   Future<List<int>?> readAsBytes(String path) async {
     return await selectAsBytes(path).getSingleOrNull();
   }
@@ -117,7 +101,7 @@ class FilesDatabase extends Dao {
 
   Future<Metadata> metadata(String path) async {
     final result = await database.db.getOptional(
-      'SELECT created, updated FROM $_table WHERE path = ?',
+      'SELECT created, updated, mime_type, size FROM $_table WHERE path = ?',
       [path],
     );
     if (result == null) {
@@ -126,6 +110,8 @@ class FilesDatabase extends Dao {
     return (
       created: DateTime.fromMillisecondsSinceEpoch(result['created'] as int),
       updated: DateTime.fromMillisecondsSinceEpoch(result['updated'] as int),
+      mimeType: result['mime_type'] as String?,
+      size: result['size'] as int?,
     );
   }
 
@@ -144,4 +130,6 @@ class FilesDatabase extends Dao {
 typedef Metadata = ({
   DateTime created,
   DateTime updated,
+  String? mimeType,
+  int? size,
 });

@@ -9,6 +9,7 @@ dependencies:
   cachecontrol: ^0.0.1
   http: ^1.2.0
   # query: ^2.1.0
+  mime: ^1.0.5
   shortid: ^0.1.2
   sqlite_async: ^0.6.0
 

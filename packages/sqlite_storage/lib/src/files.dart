@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:mime/mime.dart';
 import 'package:sqlite_async/sqlite_async.dart';
 
 import 'database/database.dart';
@@ -11,6 +12,8 @@ const _createSql = '''
 CREATE TABLE $_table (
   path TEXT PRIMARY KEY,
   data BLOB,
+  mime_type TEXT,
+  size INTEGER,
   created INTEGER,
   updated INTEGER,
   UNIQUE (path)
@@ -36,6 +39,22 @@ class FilesDatabase extends Dao {
       'SELECT data FROM $_table WHERE path = ?',
       args: [path],
       mapper: (row) => row['data'] as List<int>?,
+    );
+  }
+
+  Selectable<int?> selectSize(String path) {
+    return database.db.select(
+      'SELECT size FROM $_table WHERE path = ?',
+      args: [path],
+      mapper: (row) => row['size'] as int?,
+    );
+  }
+
+  Selectable<String?> selectMimeType(String path) {
+    return database.db.select(
+      'SELECT mime_type FROM $_table WHERE path = ?',
+      args: [path],
+      mapper: (row) => row['mime_type'] as String?,
     );
   }
 
@@ -66,10 +85,12 @@ class FilesDatabase extends Dao {
     );
     if (existing == null) {
       await database.db.execute(
-        'INSERT INTO $_table (path, data, created, updated) VALUES (?, ?, ?, ?)',
+        'INSERT INTO $_table (path, data, mime_type, size, created, updated) VALUES (?, ?, ?, ?, ?, ?)',
         [
           path,
           data,
+          lookupMimeType(path, headerBytes: data),
+          data.length,
           DateTime.now().millisecondsSinceEpoch,
           DateTime.now().millisecondsSinceEpoch
         ],

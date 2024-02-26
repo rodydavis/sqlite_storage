@@ -82,25 +82,86 @@ class MyApp extends StatelessWidget {
           themeMode: brightness.value,
           theme: ThemeData.light(),
           darkTheme: ThemeData.dark(),
-          home: DocumentsList(
-            collection: db.documents.collection('test'),
-          ),
+          home: const Home(),
         );
       },
     );
   }
 }
 
-class MyHomePage extends StatefulWidget {
-  const MyHomePage({super.key, required this.title});
-
-  final String title;
+class Home extends StatelessWidget {
+  const Home({super.key});
 
   @override
-  State<MyHomePage> createState() => _MyHomePageState();
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Home'),
+        actions: [
+          DropdownButton<ThemeMode>(
+            value: brightness.value,
+            items: const [
+              DropdownMenuItem(
+                value: ThemeMode.system,
+                child: Text('System'),
+              ),
+              DropdownMenuItem(
+                value: ThemeMode.light,
+                child: Text('Light'),
+              ),
+              DropdownMenuItem(
+                value: ThemeMode.dark,
+                child: Text('Dark'),
+              ),
+            ],
+            onChanged: (value) {
+              brightness.value = value!;
+            },
+          ),
+        ],
+      ),
+      body: ListView(
+        children: [
+          ListTile(
+            title: const Text('Counter'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return const CounterExample();
+                  },
+                ),
+              );
+            },
+          ),
+          ListTile(
+            title: const Text('Documents'),
+            onTap: () {
+              Navigator.of(context).push(
+                MaterialPageRoute(
+                  builder: (context) {
+                    return DocumentsList(
+                      collection: db.documents.collection('test'),
+                    );
+                  },
+                ),
+              );
+            },
+          ),
+        ],
+      ),
+    );
+  }
 }
 
-class _MyHomePageState extends State<MyHomePage> {
+class CounterExample extends StatefulWidget {
+  const CounterExample({super.key});
+
+  @override
+  State<CounterExample> createState() => _CounterExampleState();
+}
+
+class _CounterExampleState extends State<CounterExample> {
   int _counter = 0;
 
   @override
@@ -126,28 +187,7 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Theme.of(context).colorScheme.inversePrimary,
-        title: Text(widget.title),
-        actions: [
-          DropdownButton<ThemeMode>(
-            items: const [
-              DropdownMenuItem(
-                value: ThemeMode.system,
-                child: Text('System'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.light,
-                child: Text('Light'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.dark,
-                child: Text('Dark'),
-              ),
-            ],
-            onChanged: (value) {
-              brightness.value = value!;
-            },
-          ),
-        ],
+        title: const Text('Counter'),
       ),
       body: Center(
         child: Column(
@@ -189,28 +229,6 @@ class _DocumentsListState extends State<DocumentsList> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Documents'),
-        actions: [
-          DropdownButton<ThemeMode>(
-            value: brightness.value,
-            items: const [
-              DropdownMenuItem(
-                value: ThemeMode.system,
-                child: Text('System'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.light,
-                child: Text('Light'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.dark,
-                child: Text('Dark'),
-              ),
-            ],
-            onChanged: (value) {
-              brightness.value = value!;
-            },
-          ),
-        ],
       ),
       body: StreamBuilder<List<DocumentSnapshot>>(
         stream: docs,

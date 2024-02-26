@@ -1,8 +1,6 @@
 name: example
-description: "A new Flutter project."
-
+description: SQLite storage helpers example
 publish_to: "none"
-
 version: 1.0.0+1
 
 environment:
@@ -16,8 +14,8 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.20
   sqlite_async: ^0.6.0
   path_provider: ^2.1.2
-  sqlite_storage_flutter:
-    path: ..
+  sqlite_storage:
+    path: ../packages/sqlite_storage
 
 dev_dependencies:
   flutter_test:

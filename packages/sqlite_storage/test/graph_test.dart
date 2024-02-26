@@ -234,3 +234,44 @@ void main() {
     });
   });
 }
+
+
+
+  //     await database.addGraphData({
+  //       "nodes": [
+  //         {"id": '1', "label": 'circle'},
+  //         {"id": '2', "label": 'ellipse'},
+  //         {"id": '3', "label": 'database'},
+  //         {"id": '4', "label": 'box'},
+  //         {"id": '5', "label": 'diamond'},
+  //         {"id": '6', "label": 'dot'},
+  //         {"id": '7', "label": 'square'},
+  //         {"id": '8', "label": 'triangle'},
+  //         {"id": '9', "label": "star"},
+  //       ],
+  //       "edges": [
+  //         {"from": '1', "to": '2'},
+  //         {"from": '2', "to": '3'},
+  //         {"from": '2', "to": '4'},
+  //         {"from": '2', "to": '5'},
+  //         {"from": '5', "to": '6'},
+  //         {"from": '5', "to": '7'},
+  //         {"from": '6', "to": '8'},
+  //         {"from": '2', "to": '8'},
+  //         {"from": '1', "to": '8'},
+  //         {"from": '1', "to": '7'},
+  //         {"from": '1', "to": '6'},
+  //         {"from": '1', "to": '5'},
+  //         {"from": '1', "to": '4'},
+  //         {"from": '1', "to": '3'},
+  //         {"from": '1', "to": '9'},
+  //         {"from": '9', "to": '8'},
+  //         {"from": '9', "to": '5'},
+  //         {"from": '9', "to": '3'},
+  //       ]
+  //     });
+  //     loadData();
+  //   } catch (e) {
+  //     debugPrint('Error loading example data: $e');
+  //   }
+  // }

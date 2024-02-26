@@ -271,6 +271,36 @@ class GraphDatabase extends Dao {
       [jsonEncode(data), id],
     );
   }
+
+  Future<void> addGraphData(GraphData data) async {
+    for (final node in data.nodes) {
+      await insertNode({'id': node.id, 'label': node.label});
+    }
+    for (final edge in data.edges) {
+      await insertEdge(edge.from, edge.to);
+    }
+  }
+
+  Future<GraphData> getGraphData() async {
+    final nodes = await selectNodes().get();
+    final edges = await selectEdges().get();
+    final graphNodes = nodes.map((node) => (
+          id: node.id,
+          label: node.body['label'] as String,
+        ));
+    final graphEdges = edges.map((edge) => (
+          from: edge.source,
+          to: edge.target,
+        ));
+    return (
+      nodes: graphNodes.toList(),
+      edges: graphEdges.toList(),
+    );
+  }
 }
 
 typedef NodeBody = ({String x, String y, Map<String, Object?> obj});
+
+typedef GraphNode = ({String id, String label});
+typedef GraphEdge = ({String from, String to});
+typedef GraphData = ({List<GraphNode> nodes, List<GraphEdge> edges});

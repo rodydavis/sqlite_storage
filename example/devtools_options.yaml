@@ -1,0 +1,2 @@
+extensions:
+  - sqlite_storage: true

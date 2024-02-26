@@ -65,11 +65,12 @@ void main() async {
   brightness.value =
       (await db.kv.getEnum(ThemeMode.values, 'theme-brightness')) ??
           ThemeMode.system;
-  runApp(const MyApp());
+  // await db.graph.addGraphData(EXAMPLE_GRAPH_DATA);
+  runApp(const Example());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class Example extends StatelessWidget {
+  const Example({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +129,7 @@ class Home extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) {
-                    return const CounterExample();
+                    return const Counter();
                   },
                 ),
               );
@@ -140,7 +141,7 @@ class Home extends StatelessWidget {
               Navigator.of(context).push(
                 MaterialPageRoute(
                   builder: (context) {
-                    return DocumentsList(
+                    return Docs(
                       collection: db.documents.collection('test'),
                     );
                   },
@@ -154,14 +155,14 @@ class Home extends StatelessWidget {
   }
 }
 
-class CounterExample extends StatefulWidget {
-  const CounterExample({super.key});
+class Counter extends StatefulWidget {
+  const Counter({super.key});
 
   @override
-  State<CounterExample> createState() => _CounterExampleState();
+  State<Counter> createState() => _CounterExampleState();
 }
 
-class _CounterExampleState extends State<CounterExample> {
+class _CounterExampleState extends State<Counter> {
   int _counter = 0;
 
   @override
@@ -212,16 +213,16 @@ class _CounterExampleState extends State<CounterExample> {
   }
 }
 
-class DocumentsList extends StatefulWidget {
-  const DocumentsList({super.key, required this.collection});
+class Docs extends StatefulWidget {
+  const Docs({super.key, required this.collection});
 
   final Collection collection;
 
   @override
-  State<DocumentsList> createState() => _DocumentsListState();
+  State<Docs> createState() => _DocsState();
 }
 
-class _DocumentsListState extends State<DocumentsList> {
+class _DocsState extends State<Docs> {
   late final docs = widget.collection.select().watch();
 
   @override

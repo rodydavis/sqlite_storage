@@ -40,7 +40,8 @@ class _SqliteStorageExtensionState extends State<SqliteStorageExtension> {
     ('Files', '_files'),
     ('Logging', '_logging'),
     ('Analytics', '_analytics'),
-    // ('Requests', '_requests'),
+    ('Request Cache', '_request_cache'),
+    // ('Offline Queue', '_offline_queue'),
     ('Graph', '_graph'),
   ];
   final table = signal('_key_value');

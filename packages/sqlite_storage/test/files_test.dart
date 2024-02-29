@@ -30,23 +30,42 @@ void main() {
   group('files', () {
     test('write and read', () async {
       const path = 'mypath/test';
-      await db.files.writeAsString(path, 'hello');
-      final result = await db.files.readAsString(path);
+      final file = DatabaseFile(db.files, path);
+      await file.writeAsString('hello');
+      final result = await file.readAsString();
       expect(result, 'hello');
+    });
+
+    test('2 files', () async {
+      final dir = DatabaseDirectory(db.files, 'test');
+
+      // expect(await dir.exists(), false);
+
+      final fileA = dir.file('a.txt');
+      await fileA.writeAsString('A');
+
+      final fileB = dir.file('b.txt');
+      await fileB.writeAsString('B');
+
+      expect(await dir.exists(), true);
+      expect((await dir.list(recursive: true)).length, 2);
+      expect((await dir.list(recursive: false)).length, 2);
     });
 
     test('exists', () async {
       const path = 'mypath/test';
-      await db.files.writeAsString(path, 'hello');
-      final result = await db.files.exists(path);
+      final file = DatabaseFile(db.files, path);
+      await file.writeAsString('hello');
+      final result = await file.exists();
       expect(result, isTrue);
     });
 
     test('metadata', () async {
       const path = 'mypath/test.txt';
       const raw = 'hello';
-      await db.files.writeAsString(path, raw);
-      final result = await db.files.metadata(path);
+      final file = DatabaseFile(db.files, path);
+      await file.writeAsString(raw);
+      final result = await file.metadata();
       expect(result.created, isA<DateTime>());
       expect(result.updated, isA<DateTime>());
       expect(result.size, utf8.encode(raw).length);
@@ -56,73 +75,84 @@ void main() {
     test('watch', () async {
       const path = 'mypath/test';
       final events = <String?>[];
-      db.files.watchAsString(path).listen(events.add);
-      await db.files.writeAsString(path, 'hello');
+      final file = DatabaseFile(db.files, path);
+      file.watchAsString().listen(events.add);
       await Future.delayed(const Duration(milliseconds: 100));
-      await db.files.writeAsString(path, 'world');
+      await file.writeAsString('hello');
       await Future.delayed(const Duration(milliseconds: 100));
-      expect(events, ['hello', 'world']);
+      await file.writeAsString('world');
+      await Future.delayed(const Duration(milliseconds: 100));
+      expect(events, [null, 'hello', 'world']);
     });
 
     test('remove', () async {
       const path = 'mypath/test';
-      await db.files.writeAsString(path, 'hello');
-      await db.files.delete(path);
-      final result = await db.files.exists(path);
+      final file = DatabaseFile(db.files, path);
+      await file.writeAsString('hello');
+      await file.delete();
+      final result = await file.exists();
       expect(result, isFalse);
     });
 
     group('string', () {
       test('read', () async {
         const path = 'mypath/test';
-        await db.files.writeAsString(path, 'hello');
-        final result = await db.files.readAsString(path);
+        final file = DatabaseFile(db.files, path);
+        await file.writeAsString('hello');
+        final result = await file.readAsString();
         expect(result, 'hello');
       });
 
       test('write', () async {
         const path = 'mypath/test';
-        await db.files.writeAsString(path, 'hello');
-        final result = await db.files.readAsString(path);
+        final file = DatabaseFile(db.files, path);
+        await file.writeAsString('hello');
+        final result = await file.readAsString();
         expect(result, 'hello');
       });
 
       test('watch', () async {
         const path = 'mypath/test';
         final events = <String?>[];
-        db.files.watchAsString(path).listen(events.add);
-        await db.files.writeAsString(path, 'hello');
+        final file = DatabaseFile(db.files, path);
+        file.watchAsString().listen(events.add);
         await Future.delayed(const Duration(milliseconds: 100));
-        await db.files.writeAsString(path, 'world');
+        await file.writeAsString('hello');
         await Future.delayed(const Duration(milliseconds: 100));
-        expect(events, ['hello', 'world']);
+        await file.writeAsString('world');
+        await Future.delayed(const Duration(milliseconds: 100));
+        expect(events, [null, 'hello', 'world']);
       });
     });
 
     group('bytes', () {
       test('read', () async {
         const path = 'mypath/test';
-        await db.files.writeAsBytes(path, [1, 2, 3]);
-        final result = await db.files.readAsBytes(path);
+        final file = DatabaseFile(db.files, path);
+        await file.writeAsBytes([1, 2, 3]);
+        final result = await file.readAsBytes();
         expect(result, [1, 2, 3]);
       });
 
       test('write', () async {
         const path = 'mypath/test';
-        await db.files.writeAsBytes(path, [1, 2, 3]);
-        final result = await db.files.readAsBytes(path);
+        final file = DatabaseFile(db.files, path);
+        await file.writeAsBytes([1, 2, 3]);
+        final result = await file.readAsBytes();
         expect(result, [1, 2, 3]);
       });
 
       test('watch', () async {
-        const path = 'mypath/test';
+        const path = 'mypath/test.txt';
         final events = <List<int>?>[];
-        db.files.watchAsBytes(path).listen(events.add);
-        await db.files.writeAsBytes(path, [1, 2, 3]);
+        final file = DatabaseFile(db.files, path);
+        file.watchAsBytes().listen(events.add);
+        await file.writeAsBytes([1, 2, 3]);
         await Future.delayed(const Duration(milliseconds: 100));
-        await db.files.writeAsBytes(path, [4, 5, 6]);
+        await file.writeAsBytes([4, 5, 6]);
         await Future.delayed(const Duration(milliseconds: 100));
         expect(events, [
+          null,
           [1, 2, 3],
           [4, 5, 6],
         ]);

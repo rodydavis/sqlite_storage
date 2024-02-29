@@ -6,12 +6,14 @@ extension DatabaseUtils on SqliteDatabase {
     String sql, {
     List<Object?> args = const [],
     required T Function(Row) mapper,
+    List<String>? tables,
   }) {
     return Selectable<T>(
       this,
       sql,
       args,
       mapper: mapper,
+      tables: tables,
     );
   }
 }
@@ -21,12 +23,14 @@ class Selectable<T> {
   final String sql;
   final List<Object?> args;
   final T Function(Row) mapper;
+  final List<String>? tables;
 
   Selectable(
     this.db,
     this.sql,
     this.args, {
     required this.mapper,
+    this.tables,
   });
 
   Future<T> getSingle() async {
@@ -42,7 +46,12 @@ class Selectable<T> {
   Stream<T?> watchSingleOrNull({
     Duration throttle = const Duration(milliseconds: 30),
   }) async* {
-    final stream = db.watch(sql, parameters: args, throttle: throttle);
+    final stream = db.watch(
+      sql,
+      parameters: args,
+      throttle: throttle,
+      triggerOnTables: tables,
+    );
     await for (final results in stream) {
       yield results.isEmpty ? null : mapper(results.first);
     }
@@ -51,7 +60,12 @@ class Selectable<T> {
   Stream<T> watchSingle({
     Duration throttle = const Duration(milliseconds: 30),
   }) async* {
-    final stream = db.watch(sql, parameters: args, throttle: throttle);
+    final stream = db.watch(
+      sql,
+      parameters: args,
+      throttle: throttle,
+      triggerOnTables: tables,
+    );
     await for (final results in stream) {
       yield mapper(results.first);
     }
@@ -100,6 +114,7 @@ class Selectable<T> {
         if (offset != null) offset,
       ],
       throttle: throttle,
+      triggerOnTables: tables,
     );
     await for (final results in stream) {
       yield results.map(mapper).toList();

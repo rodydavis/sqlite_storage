@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:sqlite_storage/sqlite_storage.dart';
 
@@ -44,18 +46,69 @@ class _DocsState extends State<Docs> {
                 title: Text(doc.path),
                 subtitle: Text(doc.data.toString()),
                 onTap: () async {
-                  final messenger = ScaffoldMessenger.of(context);
-                  final val = await doc
-                      .jsonExtract(['value', 'name']).getSingleOrNull();
-                  messenger.hideCurrentSnackBar();
-                  messenger.showSnackBar(
-                    SnackBar(content: Text('Value: $val')),
-                  );
+                  final nav = Navigator.of(context);
+                  nav.push(MaterialPageRoute(
+                    builder: (context) => DocumentEdit(doc: doc),
+                    fullscreenDialog: true,
+                  ));
                 },
               );
             },
           );
         },
+      ),
+    );
+  }
+}
+
+class DocumentEdit extends StatefulWidget {
+  const DocumentEdit({super.key, required this.doc});
+
+  final DocumentSnapshot doc;
+
+  @override
+  State<DocumentEdit> createState() => _DocumentEditState();
+}
+
+class _DocumentEditState extends State<DocumentEdit> {
+  static const encoder = JsonEncoder.withIndent(' ');
+  late final controller = TextEditingController(
+    text: encoder.convert(widget.doc.data),
+  );
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Doc: ${widget.doc.path}'),
+        actions: [
+          IconButton(
+            onPressed: () async {
+              final messenger = ScaffoldMessenger.of(context);
+              final nav = Navigator.of(context);
+              try {
+                final data = jsonDecode(controller.text.trim());
+                await widget.doc.set(data);
+                nav.pop();
+              } catch (e) {
+                messenger.hideCurrentSnackBar();
+                messenger.showSnackBar(
+                  SnackBar(
+                    content: Text('Error saving document: $e'),
+                  ),
+                );
+              }
+            },
+            icon: const Icon(Icons.save),
+          ),
+        ],
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(8),
+        child: TextField(
+          maxLines: null,
+          controller: controller,
+          expands: true,
+        ),
       ),
     );
   }

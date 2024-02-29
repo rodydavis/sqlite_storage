@@ -49,7 +49,7 @@ final brightness = ValueNotifier(ThemeMode.system);
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   final appDir = await getApplicationDocumentsDirectory();
-  final dbPath = '${appDir.path}/app.db';
+  final dbPath = '${appDir.path}/app.sqlite';
   db = Database(SqliteDatabase(path: dbPath));
   db.logging.printToConsole = kDebugMode;
   await db.open();

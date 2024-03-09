@@ -16,13 +16,13 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
       attachedDatabase.offlineRequestQueue;
   OfflineRequestQueueFiles get offlineRequestQueueFiles =>
       attachedDatabase.offlineRequestQueueFiles;
-  Future<int> _add(String? message, int time, int? sequenceNumber, int level,
+  Future<int> _add(String? message, int date, int? sequenceNumber, int level,
       String name, String? error, String? stackTrace) {
     return customInsert(
-      'INSERT INTO logging (message, time, sequence_number, level, name, error, stack_trace) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)',
+      'INSERT INTO logging (message, date, sequence_number, level, name, error, stack_trace) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7)',
       variables: [
         Variable<String>(message),
-        Variable<int>(time),
+        Variable<int>(date),
         Variable<int>(sequenceNumber),
         Variable<int>(level),
         Variable<String>(name),
@@ -35,7 +35,7 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
 
   Selectable<Log> _getAll(int level) {
     return customSelect(
-        'SELECT * FROM logging WHERE level >= ?1 ORDER BY time DESC',
+        'SELECT * FROM logging WHERE level >= ?1 ORDER BY date DESC',
         variables: [
           Variable<int>(level)
         ],
@@ -46,7 +46,7 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
 
   Selectable<Log> _getTimeRange(int start, int end, int level) {
     return customSelect(
-        'SELECT * FROM logging WHERE time >= ?1 AND time <= ?2 AND level >= ?3 ORDER BY time DESC',
+        'SELECT * FROM logging WHERE date >= ?1 AND date <= ?2 AND level >= ?3 ORDER BY date DESC',
         variables: [
           Variable<int>(start),
           Variable<int>(end),
@@ -57,11 +57,11 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
         }).asyncMap(logging.mapFromRow);
   }
 
-  Selectable<Log> _getTimeAfter(int time, int level) {
+  Selectable<Log> _getTimeAfter(int date, int level) {
     return customSelect(
-        'SELECT * FROM logging WHERE time > ?1 AND level >= ?2 ORDER BY time DESC',
+        'SELECT * FROM logging WHERE date > ?1 AND level >= ?2 ORDER BY date DESC',
         variables: [
-          Variable<int>(time),
+          Variable<int>(date),
           Variable<int>(level)
         ],
         readsFrom: {
@@ -69,11 +69,11 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
         }).asyncMap(logging.mapFromRow);
   }
 
-  Selectable<Log> _getTimeBefore(int time, int level) {
+  Selectable<Log> _getTimeBefore(int date, int level) {
     return customSelect(
-        'SELECT * FROM logging WHERE time < ?1 AND level >= ?2 ORDER BY time DESC',
+        'SELECT * FROM logging WHERE date < ?1 AND level >= ?2 ORDER BY date DESC',
         variables: [
-          Variable<int>(time),
+          Variable<int>(date),
           Variable<int>(level)
         ],
         readsFrom: {
@@ -90,10 +90,10 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
     );
   }
 
-  Future<int> _deleteBefore(int time) {
+  Future<int> _deleteBefore(int date) {
     return customUpdate(
-      'DELETE FROM logging WHERE time < ?1',
-      variables: [Variable<int>(time)],
+      'DELETE FROM logging WHERE date < ?1',
+      variables: [Variable<int>(date)],
       updates: {logging},
       updateKind: UpdateKind.delete,
     );

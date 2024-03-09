@@ -12,4 +12,5 @@ _add:
     );
 
 _getAll:
-    SELECT * FROM analytics;
+    SELECT * FROM analytics
+    ORDER BY date DESC;

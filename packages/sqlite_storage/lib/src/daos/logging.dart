@@ -16,7 +16,7 @@ class LoggingDao extends DatabaseAccessor<DriftStorage> with _$LoggingDaoMixin {
 
   Future<void> log(
     String message, {
-    DateTime? time,
+    DateTime? date,
     int? sequenceNumber,
     int level = 0,
     String name = '',
@@ -27,7 +27,7 @@ class LoggingDao extends DatabaseAccessor<DriftStorage> with _$LoggingDaoMixin {
     if (printToConsole) {
       developer.log(
         message,
-        time: time,
+        time: date,
         sequenceNumber: sequenceNumber,
         level: level,
         name: name,
@@ -38,7 +38,7 @@ class LoggingDao extends DatabaseAccessor<DriftStorage> with _$LoggingDaoMixin {
     }
     await _add(
       message,
-      (time ?? DateTime.now()).millisecondsSinceEpoch,
+      (date ?? DateTime.now()).millisecondsSinceEpoch,
       sequenceNumber,
       level,
       name,

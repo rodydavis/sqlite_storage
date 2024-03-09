@@ -54,7 +54,7 @@ CREATE INDEX IF NOT EXISTS target_idx ON edges(target);
 CREATE TABLE logging (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   message TEXT,
-  time INTEGER NOT NULL,
+  date INTEGER NOT NULL,
   sequence_number INTEGER,
   level INTEGER NOT NULL,
   name TEXT NOT NULL,

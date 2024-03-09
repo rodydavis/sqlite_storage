@@ -1370,8 +1370,8 @@ class Logging extends Table with TableInfo<Logging, Log> {
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<int> time = GeneratedColumn<int>(
-      'time', aliasedName, false,
+  late final GeneratedColumn<int> date = GeneratedColumn<int>(
+      'date', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
@@ -1402,7 +1402,7 @@ class Logging extends Table with TableInfo<Logging, Log> {
       $customConstraints: '');
   @override
   List<GeneratedColumn> get $columns =>
-      [id, message, time, sequenceNumber, level, name, error, stackTrace];
+      [id, message, date, sequenceNumber, level, name, error, stackTrace];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1418,8 +1418,8 @@ class Logging extends Table with TableInfo<Logging, Log> {
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       message: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}message']),
-      time: attachedDatabase.typeMapping
-          .read(DriftSqlType.int, data['${effectivePrefix}time'])!,
+      date: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
       sequenceNumber: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}sequence_number']),
       level: attachedDatabase.typeMapping
@@ -1445,7 +1445,7 @@ class Logging extends Table with TableInfo<Logging, Log> {
 class Log extends DataClass implements Insertable<Log> {
   int id;
   String? message;
-  int time;
+  int date;
   int? sequenceNumber;
   int level;
   String name;
@@ -1454,7 +1454,7 @@ class Log extends DataClass implements Insertable<Log> {
   Log(
       {required this.id,
       this.message,
-      required this.time,
+      required this.date,
       this.sequenceNumber,
       required this.level,
       required this.name,
@@ -1467,7 +1467,7 @@ class Log extends DataClass implements Insertable<Log> {
     if (!nullToAbsent || message != null) {
       map['message'] = Variable<String>(message);
     }
-    map['time'] = Variable<int>(time);
+    map['date'] = Variable<int>(date);
     if (!nullToAbsent || sequenceNumber != null) {
       map['sequence_number'] = Variable<int>(sequenceNumber);
     }
@@ -1488,7 +1488,7 @@ class Log extends DataClass implements Insertable<Log> {
       message: message == null && nullToAbsent
           ? const Value.absent()
           : Value(message),
-      time: Value(time),
+      date: Value(date),
       sequenceNumber: sequenceNumber == null && nullToAbsent
           ? const Value.absent()
           : Value(sequenceNumber),
@@ -1508,7 +1508,7 @@ class Log extends DataClass implements Insertable<Log> {
     return Log(
       id: serializer.fromJson<int>(json['id']),
       message: serializer.fromJson<String?>(json['message']),
-      time: serializer.fromJson<int>(json['time']),
+      date: serializer.fromJson<int>(json['date']),
       sequenceNumber: serializer.fromJson<int?>(json['sequence_number']),
       level: serializer.fromJson<int>(json['level']),
       name: serializer.fromJson<String>(json['name']),
@@ -1522,7 +1522,7 @@ class Log extends DataClass implements Insertable<Log> {
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
       'message': serializer.toJson<String?>(message),
-      'time': serializer.toJson<int>(time),
+      'date': serializer.toJson<int>(date),
       'sequence_number': serializer.toJson<int?>(sequenceNumber),
       'level': serializer.toJson<int>(level),
       'name': serializer.toJson<String>(name),
@@ -1534,7 +1534,7 @@ class Log extends DataClass implements Insertable<Log> {
   Log copyWith(
           {int? id,
           Value<String?> message = const Value.absent(),
-          int? time,
+          int? date,
           Value<int?> sequenceNumber = const Value.absent(),
           int? level,
           String? name,
@@ -1543,7 +1543,7 @@ class Log extends DataClass implements Insertable<Log> {
       Log(
         id: id ?? this.id,
         message: message.present ? message.value : this.message,
-        time: time ?? this.time,
+        date: date ?? this.date,
         sequenceNumber:
             sequenceNumber.present ? sequenceNumber.value : this.sequenceNumber,
         level: level ?? this.level,
@@ -1556,7 +1556,7 @@ class Log extends DataClass implements Insertable<Log> {
     return (StringBuffer('Log(')
           ..write('id: $id, ')
           ..write('message: $message, ')
-          ..write('time: $time, ')
+          ..write('date: $date, ')
           ..write('sequenceNumber: $sequenceNumber, ')
           ..write('level: $level, ')
           ..write('name: $name, ')
@@ -1568,14 +1568,14 @@ class Log extends DataClass implements Insertable<Log> {
 
   @override
   int get hashCode => Object.hash(
-      id, message, time, sequenceNumber, level, name, error, stackTrace);
+      id, message, date, sequenceNumber, level, name, error, stackTrace);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is Log &&
           other.id == this.id &&
           other.message == this.message &&
-          other.time == this.time &&
+          other.date == this.date &&
           other.sequenceNumber == this.sequenceNumber &&
           other.level == this.level &&
           other.name == this.name &&
@@ -1586,7 +1586,7 @@ class Log extends DataClass implements Insertable<Log> {
 class LoggingCompanion extends UpdateCompanion<Log> {
   Value<int> id;
   Value<String?> message;
-  Value<int> time;
+  Value<int> date;
   Value<int?> sequenceNumber;
   Value<int> level;
   Value<String> name;
@@ -1595,7 +1595,7 @@ class LoggingCompanion extends UpdateCompanion<Log> {
   LoggingCompanion({
     this.id = const Value.absent(),
     this.message = const Value.absent(),
-    this.time = const Value.absent(),
+    this.date = const Value.absent(),
     this.sequenceNumber = const Value.absent(),
     this.level = const Value.absent(),
     this.name = const Value.absent(),
@@ -1605,19 +1605,19 @@ class LoggingCompanion extends UpdateCompanion<Log> {
   LoggingCompanion.insert({
     this.id = const Value.absent(),
     this.message = const Value.absent(),
-    required int time,
+    required int date,
     this.sequenceNumber = const Value.absent(),
     required int level,
     required String name,
     this.error = const Value.absent(),
     this.stackTrace = const Value.absent(),
-  })  : time = Value(time),
+  })  : date = Value(date),
         level = Value(level),
         name = Value(name);
   static Insertable<Log> custom({
     Expression<int>? id,
     Expression<String>? message,
-    Expression<int>? time,
+    Expression<int>? date,
     Expression<int>? sequenceNumber,
     Expression<int>? level,
     Expression<String>? name,
@@ -1627,7 +1627,7 @@ class LoggingCompanion extends UpdateCompanion<Log> {
     return RawValuesInsertable({
       if (id != null) 'id': id,
       if (message != null) 'message': message,
-      if (time != null) 'time': time,
+      if (date != null) 'date': date,
       if (sequenceNumber != null) 'sequence_number': sequenceNumber,
       if (level != null) 'level': level,
       if (name != null) 'name': name,
@@ -1639,7 +1639,7 @@ class LoggingCompanion extends UpdateCompanion<Log> {
   LoggingCompanion copyWith(
       {Value<int>? id,
       Value<String?>? message,
-      Value<int>? time,
+      Value<int>? date,
       Value<int?>? sequenceNumber,
       Value<int>? level,
       Value<String>? name,
@@ -1648,7 +1648,7 @@ class LoggingCompanion extends UpdateCompanion<Log> {
     return LoggingCompanion(
       id: id ?? this.id,
       message: message ?? this.message,
-      time: time ?? this.time,
+      date: date ?? this.date,
       sequenceNumber: sequenceNumber ?? this.sequenceNumber,
       level: level ?? this.level,
       name: name ?? this.name,
@@ -1666,8 +1666,8 @@ class LoggingCompanion extends UpdateCompanion<Log> {
     if (message.present) {
       map['message'] = Variable<String>(message.value);
     }
-    if (time.present) {
-      map['time'] = Variable<int>(time.value);
+    if (date.present) {
+      map['date'] = Variable<int>(date.value);
     }
     if (sequenceNumber.present) {
       map['sequence_number'] = Variable<int>(sequenceNumber.value);
@@ -1692,7 +1692,7 @@ class LoggingCompanion extends UpdateCompanion<Log> {
     return (StringBuffer('LoggingCompanion(')
           ..write('id: $id, ')
           ..write('message: $message, ')
-          ..write('time: $time, ')
+          ..write('date: $date, ')
           ..write('sequenceNumber: $sequenceNumber, ')
           ..write('level: $level, ')
           ..write('name: $name, ')

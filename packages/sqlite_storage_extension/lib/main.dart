@@ -156,6 +156,12 @@ class _TableViewerState extends State<TableViewer> {
         if (data == null) {
           return const Center(child: CircularProgressIndicator());
         }
+        if (data.$2.isEmpty) {
+          return const Center(child: Text('No Rows Found'));
+        }
+        if (data.$1.isEmpty) {
+          return const Center(child: Text('No Columns Found'));
+        }
         return SingleChildScrollView(
           child: SizedBox(
             width: double.infinity,

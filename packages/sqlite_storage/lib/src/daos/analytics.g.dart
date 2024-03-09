@@ -29,8 +29,10 @@ mixin _$AnalyticsDaoMixin on DatabaseAccessor<DriftStorage> {
   }
 
   Selectable<AnalyticsEvent> _getAll() {
-    return customSelect('SELECT * FROM analytics', variables: [], readsFrom: {
-      analytics,
-    }).asyncMap(analytics.mapFromRow);
+    return customSelect('SELECT * FROM analytics ORDER BY date DESC',
+        variables: [],
+        readsFrom: {
+          analytics,
+        }).asyncMap(analytics.mapFromRow);
   }
 }

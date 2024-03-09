@@ -3,7 +3,7 @@ import 'tables.drift';
 _add:
     INSERT INTO logging (
         message,
-        time,
+        date,
         sequence_number,
         level,
         name,
@@ -11,7 +11,7 @@ _add:
         stack_trace
     ) VALUES (
         :message,
-        :time,
+        :date,
         :sequence_number,
         :level,
         :name,
@@ -22,32 +22,32 @@ _add:
 _getAll:
     SELECT * FROM logging
     WHERE level >= :level
-    ORDER BY time DESC;
+    ORDER BY date DESC;
 
 _getTimeRange:
     SELECT * FROM logging
-    WHERE time >= :start AND time <= :end
+    WHERE date >= :start AND date <= :end
     AND level >= :level
-    ORDER BY time DESC;
+    ORDER BY date DESC;
 
 _getTimeAfter:
     SELECT * FROM logging
-    WHERE time > :time
+    WHERE date > :date
     AND level >= :level
-    ORDER BY time DESC;
+    ORDER BY date DESC;
 
 _getTimeBefore:
     SELECT * FROM logging
-    WHERE time < :time
+    WHERE date < :date
     AND level >= :level
-    ORDER BY time DESC;
+    ORDER BY date DESC;
 
 _deleteAll:
     DELETE FROM logging;
 
 _deleteBefore:
     DELETE FROM logging
-    WHERE time < :time;
+    WHERE date < :date;
 
 _search:
     SELECT * FROM logging

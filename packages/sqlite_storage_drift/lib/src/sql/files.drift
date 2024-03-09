@@ -1,0 +1,81 @@
+import 'tables.drift';
+
+_search:
+    SELECT *
+    FROM files 
+    WHERE (path LIKE :query 
+    OR data LIKE :query);
+
+_filter:
+    SELECT *
+    FROM files 
+    WHERE path LIKE :query;
+
+_delete:
+    DELETE FROM files 
+    WHERE path = :path;
+
+_deleteWhere:
+    DELETE FROM files 
+    WHERE path IN :paths;
+
+_deleteFilter:
+    DELETE FROM files 
+    WHERE path LIKE :path;
+
+_deleteAll:
+    DELETE FROM files;
+
+_set:
+    INSERT OR REPLACE 
+    INTO files (path, data, mime_type, size, created, updated) 
+    VALUES (:path, :data, :mime_type, :size, :created, :updated)
+    RETURNING *;
+
+_update:
+    UPDATE files
+    SET data = :data, mime_type = :mime_type, size = :size, updated = :updated
+    WHERE path = :path;
+
+_get:
+    SELECT * FROM files 
+    WHERE path = :path;
+
+_getAll:
+    SELECT *
+    FROM files;
+
+_getAllFilter:
+    SELECT *
+    FROM files
+    WHERE path IN :paths;
+
+_getFilesForDirectoryCount:
+    SELECT COUNT(*) AS count 
+    FROM files 
+    WHERE (
+        path LIKE :prefix
+        AND
+        (LENGTH(path) - LENGTH("REPLACE"(path, '/', ''))) = (LENGTH(:prefix) - LENGTH("REPLACE"(:prefix, '/', '')))
+    );
+
+_getFilesForDirectoryRecursiveCount:
+    SELECT COUNT(*) AS count 
+    FROM files 
+    WHERE path LIKE :prefix;
+
+_getFilesForDirectory:
+    SELECT *
+    FROM files
+    WHERE (
+        path LIKE :prefix
+        AND
+        (LENGTH(path) - LENGTH("REPLACE"(path, '/', ''))) = (LENGTH(:prefix) - LENGTH("REPLACE"(:prefix, '/', '')))
+    )
+    ORDER BY created;
+
+_getFilesForDirectoryRecursive:
+    SELECT *
+    FROM files
+    WHERE path LIKE :prefix
+    ORDER BY created;

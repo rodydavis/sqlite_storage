@@ -1,0 +1,33 @@
+import 'tables.drift';
+
+_getRequestCacheAll:
+    SELECT * FROM requests;
+
+_getRequestCacheById:
+    SELECT * FROM requests
+    WHERE id = :id;
+
+_getRequestCacheByUrl:
+    SELECT * FROM requests
+    WHERE url = :url;
+
+_deleteRequestCacheById:
+    DELETE FROM requests
+    WHERE id = :id;
+
+_deleteRequestCacheByUrl:
+    DELETE FROM requests
+    WHERE url = :url;
+
+_saveRequest:
+    INSERT OR REPLACE INTO requests (
+        url,
+        headers,
+        body,
+        date
+    ) VALUES (
+        :url,
+        :headers,
+        :body,
+        :date
+    );

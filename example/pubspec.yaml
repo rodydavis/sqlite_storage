@@ -12,10 +12,12 @@ dependencies:
 
   cupertino_icons: ^1.0.2
   sqlite3_flutter_libs: ^0.5.20
-  sqlite_async: ^0.6.0
   path_provider: ^2.1.2
-  sqlite_storage:
-    path: ../packages/sqlite_storage
+  drift: ^2.16.0
+  sqlite_storage_drift:
+    path: ../packages/sqlite_storage_drift
+  path: ^1.9.0
+  sqlite3: ^2.4.0
 
 dev_dependencies:
   flutter_test:

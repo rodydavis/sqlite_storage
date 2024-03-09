@@ -1,0 +1,124 @@
+import 'tables.drift';
+
+_search:
+    SELECT *
+    FROM documents 
+    WHERE (path LIKE :query 
+    OR data LIKE :query)
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_filter:
+    SELECT *
+    FROM documents 
+    WHERE path LIKE :query
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_delete:
+    DELETE FROM documents 
+    WHERE path = :path;
+
+_deleteWhere:
+    DELETE FROM documents 
+    WHERE path IN :paths;
+
+_deleteFilter:
+    DELETE FROM documents 
+    WHERE path LIKE :path;
+
+_deleteAll:
+    DELETE FROM documents;
+
+_set:
+    INSERT OR REPLACE 
+    INTO documents (path, data, ttl, created, updated) 
+    VALUES (:path, :data, :ttl, :created, :updated)
+    RETURNING *;
+
+_setTtl:
+    UPDATE documents
+    SET ttl = :ttl, updated = :updated
+    WHERE path = :path;
+
+_removeTTl:
+    UPDATE documents
+    SET ttl = NULL, updated = :updated
+    WHERE path = :path;
+
+_get:
+    SELECT * FROM documents 
+    WHERE path = :path
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_getAll:
+    SELECT * FROM documents
+    WHERE (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_getAllFilter:
+    SELECT * FROM documents
+    WHERE path IN :paths
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_removeExpired:
+    DELETE FROM documents
+    WHERE ttl IS NOT NULL
+    AND ttl + updated < unixepoch();
+
+_getCollectionCount:
+    SELECT COUNT(*) AS count 
+    FROM documents 
+    WHERE (
+        path LIKE :prefix
+        AND
+        (LENGTH(path) - LENGTH("REPLACE"(path, '/', ''))) = (LENGTH(:prefix) - LENGTH("REPLACE"(:prefix, '/', '')))
+    )
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_getCollection:
+    SELECT *
+    FROM documents 
+    WHERE (
+        path LIKE :prefix
+        AND
+        (LENGTH(path) - LENGTH("REPLACE"(path, '/', ''))) = (LENGTH(:prefix) - LENGTH("REPLACE"(:prefix, '/', '')))
+    )
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    )
+    ORDER BY created;
+
+_getCollectionRecursive:
+    SELECT *
+    FROM documents 
+    WHERE path LIKE :prefix
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    )
+    ORDER BY created;

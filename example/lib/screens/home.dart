@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/widgets.dart';
 
 import '../main.dart';
 import 'counter.dart';
@@ -13,26 +14,30 @@ class Home extends StatelessWidget {
       appBar: AppBar(
         title: const Text('Home'),
         actions: [
-          DropdownButton<ThemeMode>(
-            value: brightness.value,
-            items: const [
-              DropdownMenuItem(
-                value: ThemeMode.system,
-                child: Text('System'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.light,
-                child: Text('Light'),
-              ),
-              DropdownMenuItem(
-                value: ThemeMode.dark,
-                child: Text('Dark'),
-              ),
-            ],
-            onChanged: (value) {
-              brightness.value = value!;
-            },
-          ),
+          AnimatedBuilder(
+              animation: brightness,
+              builder: (context, _) {
+                return DropdownButton<ThemeMode>(
+                  value: brightness.value,
+                  items: const [
+                    DropdownMenuItem(
+                      value: ThemeMode.system,
+                      child: Text('System'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.light,
+                      child: Text('Light'),
+                    ),
+                    DropdownMenuItem(
+                      value: ThemeMode.dark,
+                      child: Text('Dark'),
+                    ),
+                  ],
+                  onChanged: (value) {
+                    brightness.value = value!;
+                  },
+                );
+              }),
         ],
       ),
       body: ListView(

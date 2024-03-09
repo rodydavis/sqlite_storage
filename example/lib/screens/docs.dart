@@ -1,7 +1,7 @@
 import 'dart:convert';
 
 import 'package:flutter/material.dart';
-import 'package:sqlite_storage/sqlite_storage.dart';
+import 'package:sqlite_storage_drift/sqlite_storage_drift.dart';
 
 import '../main.dart';
 
@@ -12,7 +12,7 @@ class Docs extends StatefulWidget {
 
   factory Docs.example() {
     return Docs(
-      collection: db.documents.collection('test'),
+      collection: db.docs.collection('test'),
     );
   }
 

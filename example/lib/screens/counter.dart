@@ -15,8 +15,8 @@ class _CounterExampleState extends State<Counter> {
   @override
   void initState() {
     super.initState();
-    db.analytics.sendScreenView('home');
-    db.kv.watchInt('counter').listen((value) {
+    db.track.sendScreenView('home');
+    db.kv.$int.watch('counter').listen((value) {
       if (mounted) {
         setState(() {
           _counter = value ?? 0;
@@ -26,8 +26,8 @@ class _CounterExampleState extends State<Counter> {
   }
 
   void _incrementCounter() {
-    db.kv.setInt('counter', _counter + 1);
-    db.analytics.sendEvent('counter', 'increment');
+    db.kv.$int.set('counter', _counter + 1);
+    db.track.sendEvent('counter', 'increment');
   }
 
   @override

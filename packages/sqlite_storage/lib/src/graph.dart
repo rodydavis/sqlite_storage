@@ -298,7 +298,6 @@ class GraphDatabase extends Dao {
     );
   }
 }
-
 typedef NodeBody = ({String x, String y, Map<String, Object?> obj});
 
 typedef GraphNode = ({String id, String label});

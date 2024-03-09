@@ -1,14 +1,13 @@
 import 'dart:convert';
 
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:path_provider/path_provider.dart';
-import 'package:sqlite_async/sqlite_async.dart';
-import 'package:sqlite_storage/sqlite_storage.dart';
 
+import 'package:sqlite_storage_drift/sqlite_storage_drift.dart';
+
+import 'connection/connection.dart';
 import 'screens/home.dart';
 
-late final Database db;
+late final DriftStorage db;
 
 const GraphData EXAMPLE_GRAPH_DATA = (
   nodes: [
@@ -48,24 +47,20 @@ final brightness = ValueNotifier(ThemeMode.system);
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  final appDir = await getApplicationDocumentsDirectory();
-  final dbPath = '${appDir.path}/app.sqlite';
-  db = Database(SqliteDatabase(path: dbPath));
-  db.logging.printToConsole = kDebugMode;
-  await db.open();
-  await db.analytics.sendEvent('event', 'app_launched');
-  final col = db.documents.collection('test');
+  db = DriftStorage(connect('app.sqlite'));
+  await db.track.sendEvent('event', 'app_launched');
+  final col = db.docs.collection('test');
   for (var i = 0; i < 10; i++) {
     final data = {'value': i, 'name': 'item $i'};
     await col.doc('$i').set(data);
-    await db.logging.log('item_added -> ${jsonEncode(data)}', level: 1);
+    await db.log.log('item_added -> ${jsonEncode(data)}', level: 1);
   }
   brightness.addListener(() {
-    db.analytics.sendEvent('theme', brightness.value.toString());
-    db.kv.setEnum('theme-brightness', brightness.value);
+    db.track.sendEvent('theme', brightness.value.toString());
+    db.kv.$enum(ThemeMode.values).set('theme-brightness', brightness.value);
   });
   brightness.value =
-      (await db.kv.getEnum(ThemeMode.values, 'theme-brightness')) ??
+      (await db.kv.$enum(ThemeMode.values).get('theme-brightness')) ??
           ThemeMode.system;
   // await db.graph.addGraphData(EXAMPLE_GRAPH_DATA);
   runApp(const Example());

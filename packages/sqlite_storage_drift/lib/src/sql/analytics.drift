@@ -1,0 +1,15 @@
+import 'tables.drift';
+
+_add:
+    INSERT INTO analytics (
+        type,
+        parameters,
+        date
+    ) VALUES (
+        :type,
+        :parameters,
+        :date
+    );
+
+_getAll:
+    SELECT * FROM analytics;

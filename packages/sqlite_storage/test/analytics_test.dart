@@ -1,7 +1,6 @@
 import 'dart:io';
 
-import 'package:sqlite_async/sqlite_async.dart';
-import 'package:sqlite_storage/sqlite_storage.dart';
+import 'package:sqlite_storage/src/database.dart';
 import 'package:test/test.dart';
 
 import 'utils/db.dart';
@@ -9,17 +8,12 @@ import 'utils/db.dart';
 void main() {
   final tempDir = tempDirFor('analytics');
   final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
-  late Database db;
+  late DriftStorage db;
 
   setUp(() async {
     resetDir('analytics');
     tempFile.createSync(recursive: true);
-    db = Database(SqliteDatabase(
-      path: tempFile.path,
-      options: const SqliteOptions(journalMode: SqliteJournalMode.wal),
-    ));
-    await db.open();
-    await Future.delayed(const Duration(milliseconds: 100));
+    db = DriftStorage(connection());
   });
 
   tearDown(() async {
@@ -28,9 +22,9 @@ void main() {
 
   group('analytics', () {
     test('sendEvent', () async {
-      await db.analytics.sendEvent('event', 'test');
+      await db.track.sendEvent('event', 'test');
 
-      final all = await db.analytics.select().get();
+      final all = await db.track.getAll();
 
       expect(all.map((e) => e.type).toList(), ['event']);
     });

@@ -14,8 +14,8 @@ dependencies:
   sqlite3_flutter_libs: ^0.5.20
   path_provider: ^2.1.2
   drift: ^2.16.0
-  sqlite_storage_drift:
-    path: ../packages/sqlite_storage_drift
+  sqlite_storage:
+    path: ../packages/sqlite_storage
   path: ^1.9.0
   sqlite3: ^2.4.0
 

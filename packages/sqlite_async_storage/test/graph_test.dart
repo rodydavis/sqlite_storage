@@ -1,6 +1,7 @@
 import 'dart:io';
 
-import 'package:sqlite_storage_drift/src/database.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:test/test.dart';
 
 import 'utils/db.dart';
@@ -8,12 +9,17 @@ import 'utils/db.dart';
 void main() {
   final tempDir = tempDirFor('graph');
   final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
-  late DriftStorage db;
+  late Database db;
 
   setUp(() async {
     resetDir('graph');
     tempFile.createSync(recursive: true);
-    db = DriftStorage(connection());
+    db = Database(SqliteDatabase(
+      path: tempFile.path,
+      options: const SqliteOptions(journalMode: SqliteJournalMode.wal),
+    ));
+    await db.open();
+    await Future.delayed(const Duration(milliseconds: 100));
   });
 
   tearDown(() async {
@@ -99,7 +105,7 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final edges = await db.graph.searchEdges(a.id, a.id).get();
+      final edges = await db.graph.selectSearchEdges(a.id, a.id).get();
 
       expect(edges.map((e) => e.source).toList(), ['1', '1', '4']);
       expect(edges.map((e) => e.target).toList(), ['2', '3', '1']);
@@ -108,7 +114,7 @@ void main() {
     test('search node by id', () async {
       await db.graph.insertNode({'id': '1', 'name': 'test 1'});
 
-      final node = await db.graph.getNodeById('1').getSingle();
+      final node = await db.graph.selectNodeById('1').getSingle();
 
       expect(node.body, {'id': '1', 'name': 'test 1'});
     });
@@ -122,7 +128,7 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverseInbound(a.id).get();
+      final nodes = await db.graph.selectTraverseInbound(a.id).get();
 
       expect(nodes.toList(), ['1', '4']);
     });
@@ -136,7 +142,7 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverseOutbound(a.id).get();
+      final nodes = await db.graph.selectTraverseOutbound(a.id).get();
 
       expect(nodes.toList(), ['1', '2', '3']);
     });
@@ -150,7 +156,7 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverseBodiesInbound(a.id).get();
+      final nodes = await db.graph.selectTraverseBodiesInbound(a.id).get();
 
       expect(nodes[0].obj, {});
       expect(nodes[0].x, '1');
@@ -178,13 +184,13 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverseBodiesOutbound(a.id).get();
+      final nodes = await db.graph.selectTraverseBodiesOutbound(a.id).get();
 
       expect(nodes[0].obj, {});
       expect(nodes[0].x, '1');
       expect(nodes[0].y, '()');
 
-      expect(nodes[1].obj, {"id": "1", "name": "test 1"});
+      expect(nodes[1].obj, {'id': '1', 'name': 'test 1'});
       expect(nodes[1].x, '1');
       expect(nodes[1].y, '()');
 
@@ -202,13 +208,13 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverseBodies(a.id).get();
+      final nodes = await db.graph.selectTraverseBodies(a.id).get();
 
       expect(nodes[0].obj, {});
       expect(nodes[0].x, '1');
       expect(nodes[0].y, '()');
 
-      expect(nodes[1].obj, {"id": "1", "name": "test 1"});
+      expect(nodes[1].obj, {'id': '1', 'name': 'test 1'});
       expect(nodes[1].x, '1');
       expect(nodes[1].y, '()');
     });
@@ -222,9 +228,50 @@ void main() {
       await db.graph.insertEdge(a.id, c.id);
       await db.graph.insertEdge(d.id, a.id);
 
-      final nodes = await db.graph.traverse(a.id).get();
+      final nodes = await db.graph.selectTraverse(a.id).get();
 
       expect(nodes.toList(), ['1', '4', '2', '3']);
     });
   });
 }
+
+
+
+  //     await database.addGraphData({
+  //       "nodes": [
+  //         {"id": '1', "label": 'circle'},
+  //         {"id": '2', "label": 'ellipse'},
+  //         {"id": '3', "label": 'database'},
+  //         {"id": '4', "label": 'box'},
+  //         {"id": '5', "label": 'diamond'},
+  //         {"id": '6', "label": 'dot'},
+  //         {"id": '7', "label": 'square'},
+  //         {"id": '8', "label": 'triangle'},
+  //         {"id": '9', "label": "star"},
+  //       ],
+  //       "edges": [
+  //         {"from": '1', "to": '2'},
+  //         {"from": '2', "to": '3'},
+  //         {"from": '2', "to": '4'},
+  //         {"from": '2', "to": '5'},
+  //         {"from": '5', "to": '6'},
+  //         {"from": '5', "to": '7'},
+  //         {"from": '6', "to": '8'},
+  //         {"from": '2', "to": '8'},
+  //         {"from": '1', "to": '8'},
+  //         {"from": '1', "to": '7'},
+  //         {"from": '1', "to": '6'},
+  //         {"from": '1', "to": '5'},
+  //         {"from": '1', "to": '4'},
+  //         {"from": '1', "to": '3'},
+  //         {"from": '1', "to": '9'},
+  //         {"from": '9', "to": '8'},
+  //         {"from": '9', "to": '5'},
+  //         {"from": '9', "to": '3'},
+  //       ]
+  //     });
+  //     loadData();
+  //   } catch (e) {
+  //     debugPrint('Error loading example data: $e');
+  //   }
+  // }

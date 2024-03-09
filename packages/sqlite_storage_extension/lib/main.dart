@@ -35,16 +35,16 @@ class SqliteStorageExtension extends StatefulWidget {
 class _SqliteStorageExtensionState extends State<SqliteStorageExtension> {
   final ready = serviceManager.onServiceAvailable.toSignal();
   final tables = [
-    ('Key/Value', '_key_value'),
-    ('Documents', '_documents'),
-    ('Files', '_files'),
-    ('Logging', '_logging'),
-    ('Analytics', '_analytics'),
-    ('Request Cache', '_request_cache'),
+    ('Key/Value', 'key_value'),
+    ('Documents', 'documents'),
+    ('Files', 'files'),
+    ('Logging', 'logging'),
+    ('Analytics', 'analytics'),
+    ('Request Cache', 'requests'),
     // ('Offline Queue', '_offline_queue'),
-    ('Graph', '_graph'),
+    ('Graph', 'graph'),
   ];
-  final table = signal('_key_value');
+  final table = signal('key_value');
 
   @override
   void initState() {
@@ -103,7 +103,7 @@ class _SqliteStorageExtensionState extends State<SqliteStorageExtension> {
               Expanded(
                 child: SizedBox.expand(
                   child: Watch.builder(builder: (context) {
-                    if (table.value == '_graph') {
+                    if (table.value == 'graph') {
                       return const GraphViewer();
                     }
                     return TableViewer(

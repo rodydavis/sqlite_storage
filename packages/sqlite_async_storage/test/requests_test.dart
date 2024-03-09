@@ -2,8 +2,8 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:http/http.dart';
-import 'package:sqlite_storage_drift/sqlite_storage_drift.dart';
-import 'package:sqlite_storage_drift/src/database.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:test/test.dart';
 
 import 'utils/db.dart';
@@ -12,14 +12,19 @@ void main() {
   final inner = TestHttpClient();
   final tempDir = tempDirFor('requests');
   final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
-  late DriftStorage db;
+  late Database db;
 
   setUp(() async {
     resetDir('requests');
     tempFile.createSync(recursive: true);
-    db = DriftStorage(connection());
-    db.http.inner = inner;
+    db = Database(SqliteDatabase(
+      path: tempFile.path,
+      options: const SqliteOptions(journalMode: SqliteJournalMode.wal),
+    ));
+    db.innerClient = inner;
     inner.count = 0;
+    await db.open();
+    await Future.delayed(const Duration(milliseconds: 100));
   });
 
   tearDown(() async {
@@ -38,7 +43,7 @@ void main() {
       });
 
       test('check if response if returned normal', () async {
-        final res = await db.http.get(uri).first;
+        final res = await db.requests.get(uri).first;
         expect(res.statusCode, 200);
         expect(res.headers['Content-Type'], 'application/json');
       });
@@ -46,34 +51,34 @@ void main() {
 
     group('check repeated calls', () {
       test('check 3 tries with cache control of max age 10', () async {
-        final client = db.http;
+        final client = db.requests;
         // Set cache control header
-        inner.headers[RequestsDao.cacheControlKey] = 'max-age=10';
+        inner.headers[RequestsDatabase.cacheControlKey] = 'max-age=10';
         var res = await client.get(uri).first;
 
         expect(res.statusCode, 200);
         expect(res.headers['Content-Type'], 'application/json');
         expect(inner.count, 1);
-        expect(res.headers[RequestsDao.cacheControlKey], 'max-age=10');
+        expect(res.headers[RequestsDatabase.cacheControlKey], 'max-age=10');
 
         res = await client.get(uri).first;
         expect(res.statusCode, 200);
         expect(res.headers['Content-Type'], 'application/json');
         expect(inner.count, 1);
-        expect(res.headers[RequestsDao.cacheControlKey], 'max-age=10');
+        expect(res.headers[RequestsDatabase.cacheControlKey], 'max-age=10');
 
         res = await client.get(uri).first;
         expect(res.statusCode, 200);
         expect(res.headers['Content-Type'], 'application/json');
         expect(inner.count, 1);
-        expect(res.headers[RequestsDao.cacheControlKey], 'max-age=10');
+        expect(res.headers[RequestsDatabase.cacheControlKey], 'max-age=10');
       });
 
       test('check 3 tries with cache control of max age 3 with delay',
           () async {
-        final client = db.http;
+        final client = db.requests;
         // Set cache control header
-        inner.headers[RequestsDao.cacheControlKey] = 'max-age=3';
+        inner.headers[RequestsDatabase.cacheControlKey] = 'max-age=3';
         var res = await client.get(uri).first;
 
         expect(res.statusCode, 200);
@@ -95,9 +100,9 @@ void main() {
       });
 
       test('remove stale', () async {
-        final client = db.http;
+        final client = db.requests;
         // Set cache control header
-        inner.headers[RequestsDao.cacheControlKey] = 'max-age=3';
+        inner.headers[RequestsDatabase.cacheControlKey] = 'max-age=3';
         var res = await client.get(uri).first;
 
         expect(res.statusCode, 200);
@@ -126,9 +131,9 @@ void main() {
       });
 
       test('check that cache is not saved on error', () async {
-        final client = db.http;
+        final client = db.requests;
         // Set cache control header
-        inner.headers[RequestsDao.cacheControlKey] = 'max-age=3';
+        inner.headers[RequestsDatabase.cacheControlKey] = 'max-age=3';
         inner.error = true;
         var res = await client.get(uri).first;
 
@@ -154,8 +159,8 @@ void main() {
 
     group('Cache-Control header overrides', () {
       test('missing', () async {
-        final client = db.http;
-        inner.headers.remove(RequestsDao.cacheControlKey);
+        final client = db.requests;
+        inner.headers.remove(RequestsDatabase.cacheControlKey);
         var res = await client.get(uri).first;
 
         expect(res.statusCode, 200);
@@ -167,17 +172,17 @@ void main() {
       });
 
       test('max-age', () async {
-        final client = db.http;
-        inner.headers.remove(RequestsDao.cacheControlKey);
+        final client = db.requests;
+        inner.headers.remove(RequestsDatabase.cacheControlKey);
         var res = await client.get(uri, headers: {
-          RequestsDao.cacheControlKey: 'max-age=10',
+          RequestsDatabase.cacheControlKey: 'max-age=10',
         }).first;
 
         expect(res.statusCode, 200);
         expect(inner.count, 1);
 
         res = await client.get(uri, headers: {
-          RequestsDao.cacheControlKey: 'max-age=10',
+          RequestsDatabase.cacheControlKey: 'max-age=10',
         }).first;
         expect(res.statusCode, 200);
         expect(inner.count, 1);

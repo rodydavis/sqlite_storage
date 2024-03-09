@@ -93,10 +93,10 @@ packages:
     dependency: transitive
     description:
       name: ffi
-      sha256: "7bf0adc28a23d395f19f3f1eb21dd7cfd1dd9f8e1c50051c069122e6853bc878"
+      sha256: "493f37e7df1804778ff3a53bd691d8692ddf69702cf4c1c1096a2e41b4779e21"
       url: "https://pub.dev"
     source: hosted
-    version: "2.1.0"
+    version: "2.1.2"
   fixnum:
     dependency: transitive
     description:
@@ -320,10 +320,10 @@ packages:
       url: "https://pub.dev"
     source: hosted
     version: "0.5.20"
-  sqlite_storage_drift:
+  sqlite_storage:
     dependency: "direct main"
     description:
-      path: "../packages/sqlite_storage_drift"
+      path: "../packages/sqlite_storage"
       relative: true
     source: path
     version: "0.0.1"
@@ -411,10 +411,10 @@ packages:
     dependency: transitive
     description:
       name: win32
-      sha256: "464f5674532865248444b4c3daca12bd9bf2d7c47f759ce2617986e7229494a8"
+      sha256: "8cb58b45c47dcb42ab3651533626161d6b67a2921917d8d429791f76972b3480"
       url: "https://pub.dev"
     source: hosted
-    version: "5.2.0"
+    version: "5.3.0"
   xdg_directories:
     dependency: transitive
     description:

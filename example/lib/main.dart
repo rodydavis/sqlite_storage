@@ -2,7 +2,7 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 
-import 'package:sqlite_storage_drift/sqlite_storage_drift.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 
 import 'connection/connection.dart';
 import 'screens/home.dart';

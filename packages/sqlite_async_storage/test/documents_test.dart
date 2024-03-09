@@ -1,32 +1,36 @@
 import 'dart:io';
 
-import 'package:sqlite_storage_drift/src/daos/documents.dart';
-import 'package:sqlite_storage_drift/src/database.dart';
+import 'package:sqlite_async/sqlite_async.dart';
+import 'package:sqlite_storage/sqlite_storage.dart';
 import 'package:test/test.dart';
 
 import 'utils/db.dart';
 
 void main() {
-  final tempDir = tempDirFor('docs');
+  final tempDir = tempDirFor('documents');
   final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
-  late DriftStorage db;
+  late Database db;
 
   setUp(() async {
-    resetDir('docs');
+    resetDir('documents');
     tempFile.createSync(recursive: true);
-    db = DriftStorage(connection());
+    db = Database(SqliteDatabase(
+      path: tempFile.path,
+      options: const SqliteOptions(journalMode: SqliteJournalMode.wal),
+    ));
+    await db.open();
+    await Future.delayed(const Duration(milliseconds: 100));
   });
-
   tearDown(() async {
     await db.close();
   });
 
   group('document', () {
     test('add', () async {
-      const prefix = 'mypath/1/test';
-      await db.docs.doc(prefix, '1').set({'name': 'one'});
-      await db.docs.doc(prefix, '2').set({'name': 'two'});
-      final results = await db.docs
+      const prefix = 'mypath/test';
+      await db.documents.doc(prefix, '1').set({'name': 'one'});
+      await db.documents.doc(prefix, '2').set({'name': 'two'});
+      final results = await db.documents
           .collection(prefix)
           .select()
           .get()
@@ -38,10 +42,10 @@ void main() {
     });
 
     test('update', () async {
-      const prefix = 'mypath/1/test';
-      await db.docs.doc(prefix, '1').set({'name': 'one', 'age': 1});
-      await db.docs.doc(prefix, '1').update({'name': 'two'});
-      final results = await db.docs
+      const prefix = 'mypath/test';
+      await db.documents.doc(prefix, '1').set({'name': 'one', 'age': 1});
+      await db.documents.doc(prefix, '1').update({'name': 'two'});
+      final results = await db.documents
           .collection(prefix)
           .select()
           .get()
@@ -52,11 +56,11 @@ void main() {
     });
 
     test('remove', () async {
-      const prefix = 'mypath/1/test';
-      await db.docs.doc(prefix, '1').set({'name': 'one'});
-      await db.docs.doc(prefix, '2').set({'name': 'two'});
-      await db.docs.doc(prefix, '1').remove();
-      final results = await db.docs
+      const prefix = 'mypath/test';
+      await db.documents.doc(prefix, '1').set({'name': 'one'});
+      await db.documents.doc(prefix, '2').set({'name': 'two'});
+      await db.documents.doc(prefix, '1').remove();
+      final results = await db.documents
           .collection(prefix)
           .select()
           .get()
@@ -67,11 +71,11 @@ void main() {
     });
 
     test('clear', () async {
-      const prefix = 'mypath/1/test';
-      await db.docs.doc(prefix, '1').set({'name': 'one'});
-      await db.docs.doc(prefix, '2').set({'name': 'two'});
-      await db.docs.collection(prefix).clear();
-      final results = await db.docs
+      const prefix = 'mypath/test';
+      await db.documents.doc(prefix, '1').set({'name': 'one'});
+      await db.documents.doc(prefix, '2').set({'name': 'two'});
+      await db.documents.collection(prefix).clear();
+      final results = await db.documents
           .collection(prefix)
           .select()
           .get()
@@ -80,16 +84,15 @@ void main() {
     });
 
     test('watchAll', () async {
-      const prefix = 'mypath/1/test';
-      final stream = db.docs.getAll().watch();
+      const prefix = 'mypath/test';
+      final stream = db.documents.select().watch();
       final results = <List<DocumentSnapshot>>[];
       stream.listen(results.add);
-      await db.docs.doc(prefix, '1').set({'name': 'one'});
+      await db.documents.doc(prefix, '1').set({'name': 'one'});
       await Future.delayed(const Duration(milliseconds: 100));
-      await db.docs.doc(prefix, '2').set({'name': 'two'});
+      await db.documents.doc(prefix, '2').set({'name': 'two'});
       await Future.delayed(const Duration(milliseconds: 100));
       expect(results.map((r) => r.map((e) => e.data).toList()).toList(), [
-        [],
         [
           {'name': 'one'},
         ],
@@ -101,23 +104,22 @@ void main() {
     });
 
     test('watch', () async {
-      const prefix = 'mypath/1/test';
-      final stream = db.docs.doc(prefix, '1').select().watchSingleOrNull();
-      final results = <DocumentSnapshot?>[];
+      const prefix = 'mypath/test';
+      final stream = db.documents.doc(prefix, '1').watch();
+      final results = <DocumentSnapshot>[];
       stream.listen(results.add);
-      await db.docs.doc(prefix, '1').set({'name': 'one'});
+      await db.documents.doc(prefix, '1').set({'name': 'one'});
       await Future.delayed(const Duration(milliseconds: 100));
-      expect(results.map((e) => e?.data).toList(), [
-        null,
+      expect(results.map((e) => e.data).toList(), [
         {'name': 'one'},
       ]);
     });
 
     test('getAll', () async {
-      await db.docs.doc('a', '1').set({'name': 'one'});
-      await db.docs.doc('b', '2').set({'name': 'two'});
-      final results = await db.docs
-          .getAll()
+      await db.documents.doc('a', '1').set({'name': 'one'});
+      await db.documents.doc('b', '2').set({'name': 'two'});
+      final results = await db.documents
+          .select()
           .get()
           .then((value) => value.map((e) => e.data).toList());
       expect(results, [
@@ -127,15 +129,14 @@ void main() {
     });
 
     test('watchAll', () async {
-      final stream = db.docs.getAll().watch();
+      final stream = db.documents.select().watch();
       final results = <List<DocumentSnapshot>>[];
       stream.listen(results.add);
-      await db.docs.doc('a', '1').set({'name': 'one'});
+      await db.documents.doc('a', '1').set({'name': 'one'});
       await Future.delayed(const Duration(milliseconds: 100));
-      await db.docs.doc('b', '2').set({'name': 'two'});
+      await db.documents.doc('b', '2').set({'name': 'two'});
       await Future.delayed(const Duration(milliseconds: 100));
       expect(results.map((r) => r.map((e) => e.data).toList()).toList(), [
-        [],
         [
           {'name': 'one'},
         ],
@@ -147,21 +148,21 @@ void main() {
     });
 
     test('clear', () async {
-      await db.docs.doc('a', '1').set({'name': 'one'});
-      await db.docs.doc('b', '2').set({'name': 'two'});
-      await db.docs.clear();
-      final results = await db.docs
-          .getAll()
+      await db.documents.doc('a', '1').set({'name': 'one'});
+      await db.documents.doc('b', '2').set({'name': 'two'});
+      await db.documents.clear();
+      final results = await db.documents
+          .select()
           .get()
           .then((value) => value.map((e) => e.data).toList());
       expect(results, []);
     });
 
     test('query', () async {
-      await db.docs.doc('a', '1').set({'name': 'one'});
-      await db.docs.doc('b', '2').set({'name': 'two'});
-      final results = await db.docs
-          .search('two')
+      await db.documents.doc('a', '1').set({'name': 'one'});
+      await db.documents.doc('b', '2').set({'name': 'two'});
+      final results = await db.documents
+          .query('two')
           .get()
           .then((value) => value.map((e) => e.data).toList());
       expect(results, [
@@ -170,77 +171,44 @@ void main() {
     });
 
     test('paging', () async {
-      final col = db.docs.collection('a');
+      final col = db.documents.collection('a');
       for (var i = 0; i < 100; i++) {
         await col.doc('$i').set({'name': 'node $i'});
       }
 
-      final count = await col.getCount().getSingleOrNull();
+      final count = await col.getCount();
       expect(count, 100);
 
-      // final results = await col.select().get(limit: 10);
-      // expect(results.length, 10);
+      final results = await col.select().get(limit: 10);
+      expect(results.length, 10);
     });
 
     test('ttl', () async {
-      final doc = db.docs.doc('a', '1');
+      final doc = db.documents.doc('a', '1');
       await doc.set({'name': 'one'});
       await doc.setTTl(const Duration(milliseconds: 100));
       await Future.delayed(const Duration(milliseconds: 200));
-      final results = await db.docs
-          .getAll()
+      final results = await db.documents
+          .select()
           .get()
           .then((value) => value.map((e) => e.data).toList());
       expect(results, []);
     });
 
     test('new id', () async {
-      final col = db.docs.collection('a');
+      final col = db.documents.collection('a');
       final doc = col.doc();
       await doc.set({'name': 'one'});
 
       expect(doc.id.isNotEmpty, true);
     });
 
-    test('paths', () async {
-      final paths = {
-        'users:1',
-        'users/1/comments:2',
-        'posts/1/comments:2',
-        'posts/1/comments:3',
-        'posts:1',
-        'posts/1/info:1',
-        'users:2',
-      };
-      for (final item in paths) {
-        final [path, id] = item.split(':');
-        final file = db.docs.doc(path, id);
-        await file.set({});
-      }
-
-      final postsDir = db.docs.collection('posts');
-      final posts1Dir = postsDir.doc('1').collection('comments');
-      final dir = await db.docs.getAll().get();
-
-      expect(dir.length, paths.length);
-
-      final postsDirDocs = await postsDir.getAll();
-      final postsDirDocsR = await postsDir.getAll(recursive: true);
-
-      expect(postsDirDocs.length, 1);
-      expect(postsDirDocsR.length, 4);
-
-      final posts1DirDocs = await posts1Dir.getAll();
-
-      expect(posts1DirDocs.length, 2);
-    });
-
     // group('json functions', () {
     //   test('json_extract', () async {
-    //     final col = db.docs.collection('a');
+    //     final col = db.documents.collection('a');
     //     col.doc('1').set({'name': 'one', 'age': 1});
     //     col.doc('2').set({'name': 'two', 'age': 2});
-    //     final results = await db.docs.jsonExtract(['name']).get();
+    //     final results = await db.documents.jsonExtract(['name']).get();
     //     expect(results, ['one', 'two']);
     //   });
     // });

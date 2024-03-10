@@ -30,8 +30,10 @@ class OfflinePocketBase extends PocketBase {
       baseUrl,
       storage,
       httpClientFactory: () {
-        storage.http.inner = createClient();
-        return storage.http.toHttpClient();
+        final client = createClient();
+        storage.http.inner = client;
+        // return storage.http.toHttpClient();
+        return client;
       },
       lang: lang,
       offlineAuthStore: authStore,

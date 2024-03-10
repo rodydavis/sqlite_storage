@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:pocketbase/pocketbase.dart';
 import 'package:sqlite_storage/sqlite_storage.dart';
 
@@ -8,13 +10,14 @@ class OfflineRecordService extends RecordService {
     this._client,
     this._collectionIdOrName,
     this.cacheStrategy,
-  ) : super(_client, _collectionIdOrName) {
-    connect();
-  }
+  ) : super(_client, _collectionIdOrName);
 
   final CacheStrategy cacheStrategy;
   final String _collectionIdOrName;
   final OfflinePocketBase _client;
+  StreamSubscription? _subscription;
+  void Function()? _disconnect;
+  bool _disposed = false;
 
   late final Collection col = _client.storage.docs
       .collection('pocketbase')
@@ -206,8 +209,9 @@ class OfflineRecordService extends RecordService {
     }
   }
 
-  void Function()? _disconnect;
-  bool _disposed = false;
+  Future<void> init() async {
+    _subscription ??= connect().listen((_) {});
+  }
 
   Stream<void> connect({
     Duration delay = const Duration(minutes: 5),
@@ -234,6 +238,8 @@ class OfflineRecordService extends RecordService {
   }
 
   void dispose() {
+    _subscription?.cancel();
+    _subscription = null;
     _disconnect?.call();
     _disconnect = null;
     _disposed = true;

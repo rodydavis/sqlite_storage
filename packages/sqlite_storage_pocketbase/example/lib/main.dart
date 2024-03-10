@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:pocketbase/pocketbase.dart';
 import 'package:sqlite_storage/sqlite_storage.dart';
@@ -10,7 +12,7 @@ late final OfflinePocketBase client;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  db = DriftStorage(connect('app.db'));
+  db = DriftStorage(connect('pocketbase-example.db'));
   client = await OfflinePocketBase.init('https://pocketbase.io', db);
   runApp(const App());
 }
@@ -50,7 +52,7 @@ class Login extends StatefulWidget {
 class _LoginState extends State<Login> {
   final formKey = GlobalKey<FormState>();
   final username = TextEditingController(text: 'test@example.com');
-  final password = TextEditingController(text: 'test@example.com');
+  final password = TextEditingController(text: '');
 
   Future<void> save(BuildContext context) async {
     final messenger = ScaffoldMessenger.of(context);
@@ -108,7 +110,13 @@ class Example extends StatefulWidget {
 }
 
 class _ExampleState extends State<Example> {
-  final col = client.localCollection('items');
+  final col = client.localCollection('test');
+
+  @override
+  void initState() {
+    super.initState();
+    col.init();
+  }
 
   @override
   void dispose() {
@@ -121,6 +129,12 @@ class _ExampleState extends State<Example> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Example'),
+        actions: [
+          IconButton(
+            onPressed: client.authStore.clear,
+            icon: const Icon(Icons.exit_to_app),
+          ),
+        ],
       ),
       body: StreamBuilder<List<RecordModel>>(
         stream: col.getRecords(),
@@ -142,9 +156,7 @@ class _ExampleState extends State<Example> {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () async {
-          final item = await col
-              .create(body: {'name': DateTime.now().toIso8601String()});
-          await col.saveRecords([item]);
+          await col.create(body: {'name': DateTime.now().toIso8601String()});
         },
         tooltip: 'Add item',
         child: const Icon(Icons.add),

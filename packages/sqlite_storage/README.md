@@ -2,7 +2,7 @@
 
 Common storage interfaces for a SQLite database.
 
-Uses [sqlite_async](https://pub.dev/packages/sqlite_async) for the underlying database.
+Uses [drift](https://pub.dev/packages/drift) for the underlying database.
 
 ## Installing
 
@@ -14,15 +14,17 @@ dependencies:
     git:
       url: git://github.com/rodydavis/sqlite_storage.git
       ref: main
+      path: packages/sqlite_storage
 ```
 
 ## Usage
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
 
-final db = Database(SqliteDatabase(path: 'app.db'));
+final db = DriftStorage(NativeDatabase.memory());
 await db.open();
 ...
 await db.close();
@@ -32,9 +34,9 @@ await db.close();
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final kv = db.kv;
 
 await kv.set('key', 'value');
@@ -96,9 +98,9 @@ final stream = kv.watchJson('key'); // Stream<Object?>
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final docs = db.documents;
 
 // Document
@@ -125,9 +127,9 @@ final doc = docs.collection('collection').doc('id-1').collection('sub-collection
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final files = db.files;
 
 // String
@@ -155,10 +157,10 @@ await files.clear();
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 import 'package:http/http.dart' as http;
 
-final Database db = ...;
+final DriftStorage db = ...;
 final requests = db.requests;
 
 final innerClient = http.Client();
@@ -181,9 +183,9 @@ await for (final res in response) {
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final graph = db.graph;
 
 // Node (must have id)
@@ -235,9 +237,9 @@ final nodes = await graph.selectTraverse(node.id).get();
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final log = db.logging;
 
 await log.log('message', level: 1);
@@ -248,9 +250,9 @@ final logs = await log.select().get();
 
 ```dart
 import 'package:sqlite_storage/sqlite_storage.dart';
-import 'package:sqlite_async/sqlite_async.dart';
+import 'package:drift/drift.dart';
 
-final Database db = ...;
+final DriftStorage db = ...;
 final analytics = db.analytics;
 
 await analytics.sendEvent('event', 'test');
@@ -262,5 +264,5 @@ final events = await analytics.select().get();
 ### Testing
 
 ```sh
-dart test --concurrency=1
+dart test
 ```

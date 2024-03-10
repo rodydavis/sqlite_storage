@@ -1,11 +1,9 @@
 library sqlite_storage;
 
-export 'src/database/database.dart';
-export 'src/database/selectable.dart';
-export 'src/documents.dart';
-export 'src/key_value.dart';
-export 'src/files.dart';
-export 'src/graph.dart';
-export 'src/requests.dart';
-export 'src/logging.dart';
-export 'src/analytics.dart';
+export 'src/database.dart';
+export 'src/daos/analytics.dart';
+export 'src/daos/logging.dart';
+export 'src/daos/requests.dart';
+export 'src/daos/documents.dart';
+export 'src/daos/files.dart';
+export 'src/daos/graph.dart';

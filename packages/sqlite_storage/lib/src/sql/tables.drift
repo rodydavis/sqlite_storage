@@ -1,0 +1,90 @@
+import '../converters.dart';
+
+CREATE TABLE key_value (
+  [key] TEXT NOT NULL PRIMARY KEY,
+  value ANY,
+  UNIQUE([key])
+) STRICT;
+
+CREATE TABLE documents (
+  path TEXT NOT NULL PRIMARY KEY,
+  data TEXT NOT NULL MAPPED BY `const JsonMapConverter()`,
+  ttl INTEGER,
+  created INTEGER NOT NULL,
+  updated INTEGER NOT NULL,
+  UNIQUE(path)
+) AS Doc;
+
+CREATE TABLE analytics (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  type TEXT NOT NULL,
+  parameters TEXT NOT NULL MAPPED BY `const JsonMapConverter()`,
+  date INTEGER NOT NULL
+) AS AnalyticsEvent;
+
+CREATE TABLE files (
+  path TEXT NOT NULL PRIMARY KEY,
+  data BLOB,
+  mime_type TEXT,
+  size INTEGER,
+  created INTEGER NOT NULL,
+  updated INTEGER NOT NULL,
+  UNIQUE (path)
+) AS FileData;
+
+CREATE TABLE IF NOT EXISTS nodes (
+    body TEXT NOT NULL MAPPED BY `const JsonMapConverter()`,
+    id   TEXT GENERATED ALWAYS AS (json_extract(body, '$.id')) VIRTUAL NOT NULL UNIQUE
+) AS DatabaseNode;
+
+CREATE INDEX IF NOT EXISTS id_idx ON nodes(id);
+
+CREATE TABLE IF NOT EXISTS edges (
+    source     TEXT NOT NULL,
+    target     TEXT NOT NULL,
+    properties TEXT NOT NULL MAPPED BY `const JsonMapConverter()`,
+    UNIQUE(source, target, properties) ON CONFLICT REPLACE,
+    FOREIGN KEY(source) REFERENCES nodes(id),
+    FOREIGN KEY(target) REFERENCES nodes(id)
+) AS DatabaseEdge;
+
+CREATE INDEX IF NOT EXISTS source_idx ON edges(source);
+CREATE INDEX IF NOT EXISTS target_idx ON edges(target);
+
+CREATE TABLE logging (
+  id INTEGER PRIMARY KEY AUTOINCREMENT,
+  message TEXT,
+  date INTEGER NOT NULL,
+  sequence_number INTEGER,
+  level INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  error TEXT,
+  stack_trace TEXT
+) AS Log;
+
+CREATE TABLE requests (
+    id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+    url TEXT NOT NULL,
+    headers TEXT NOT NULL,
+    body BLOB,
+    date INTEGER NOT NULL,
+    UNIQUE (url)
+) AS CachedRequest;
+
+CREATE TABLE requests_queue (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    url TEXT NOT NULL,
+    method TEXT NOT NULL,
+    body BLOB,
+    headers TEXT NOT NULL MAPPED BY `const JsonMapConverter()`,
+    retry_count INTEGER NOT NULL DEFAULT 0,
+    description TEXT,
+    date INTEGER NOT NULL
+);
+
+CREATE TABLE requests_queue_files (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    requests_queue_id INTEGER NOT NULL REFERENCES requests_queue(id),
+    field TEXT NOT NULL,
+    value BLOB NOT NULL
+);

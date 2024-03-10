@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart';
+import 'package:drift/native.dart';
+
 final tempDir = Directory.systemTemp.createTempSync('test_data');
 
 Directory tempDirFor(String name) {
@@ -22,3 +25,5 @@ void resetDir(String name) {
   }
   dir.createSync(recursive: true);
 }
+
+QueryExecutor connection() => NativeDatabase.memory();

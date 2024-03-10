@@ -1,0 +1,35 @@
+import 'tables.drift';
+
+_search:
+    SELECT [key], value
+    FROM key_value 
+    WHERE [key] LIKE :query 
+    OR value LIKE :query;
+
+_delete:
+    DELETE FROM key_value 
+    WHERE [key] = :key;
+
+_deleteWhere:
+    DELETE FROM key_value 
+    WHERE [key] IN :keys;
+
+_deleteAll:
+    DELETE FROM key_value;
+
+_set:
+    INSERT OR REPLACE 
+    INTO key_value ([key], value) 
+    VALUES (:key, :value)
+    RETURNING *;
+
+_get:
+    SELECT value FROM key_value 
+    WHERE [key] = :key;
+
+_getAll:
+    SELECT [key], value FROM key_value;
+
+_getAllFilter:
+    SELECT [key], value FROM key_value
+    WHERE [key] IN :keys;

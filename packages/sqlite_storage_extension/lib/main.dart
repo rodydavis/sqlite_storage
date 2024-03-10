@@ -35,15 +35,16 @@ class SqliteStorageExtension extends StatefulWidget {
 class _SqliteStorageExtensionState extends State<SqliteStorageExtension> {
   final ready = serviceManager.onServiceAvailable.toSignal();
   final tables = [
-    ('Key/Value', '_key_value'),
-    ('Documents', '_documents'),
-    ('Files', '_files'),
-    ('Logging', '_logging'),
-    ('Analytics', '_analytics'),
-    // ('Requests', '_requests'),
-    ('Graph', '_graph'),
+    ('Key/Value', 'key_value'),
+    ('Documents', 'documents'),
+    ('Files', 'files'),
+    ('Logging', 'logging'),
+    ('Analytics', 'analytics'),
+    ('Request Cache', 'requests'),
+    // ('Offline Queue', '_offline_queue'),
+    ('Graph', 'graph'),
   ];
-  final table = signal('_key_value');
+  final table = signal('key_value');
 
   @override
   void initState() {
@@ -102,7 +103,7 @@ class _SqliteStorageExtensionState extends State<SqliteStorageExtension> {
               Expanded(
                 child: SizedBox.expand(
                   child: Watch.builder(builder: (context) {
-                    if (table.value == '_graph') {
+                    if (table.value == 'graph') {
                       return const GraphViewer();
                     }
                     return TableViewer(
@@ -154,6 +155,12 @@ class _TableViewerState extends State<TableViewer> {
         final data = getData.value.value;
         if (data == null) {
           return const Center(child: CircularProgressIndicator());
+        }
+        if (data.$2.isEmpty) {
+          return const Center(child: Text('No Rows Found'));
+        }
+        if (data.$1.isEmpty) {
+          return const Center(child: Text('No Columns Found'));
         }
         return SingleChildScrollView(
           child: SizedBox(

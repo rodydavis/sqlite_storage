@@ -12,7 +12,9 @@ dependencies:
   http: ^1.2.1
   pocketbase: ^0.18.1
   sqlite_storage:
-    path: ../sqlite_storage
+    git:
+      url: https://github.com/rodydavis/sqlite_storage
+      path: packages/sqlite_storage
 
 dev_dependencies:
   flutter_lints: ^3.0.0

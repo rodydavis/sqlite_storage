@@ -29,6 +29,10 @@ class OfflineAuthStore extends AsyncAuthStore {
   }
 
   late final Stream<String?> authEvents = storage.kv.$string.watch(_key);
+  late final Stream<RecordModel?> modelEvents = storage.kv.$jsonMap
+      .watch(_modelKey)
+      .map((e) => e != null ? RecordModel.fromJson(e) : null);
+  late final Stream<String?> tokenEvents = storage.kv.$string.watch(_tokenKey);
 
   @override
   void save(String newToken, newModel) {

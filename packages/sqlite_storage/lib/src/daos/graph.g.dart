@@ -12,10 +12,9 @@ mixin _$GraphDaoMixin on DatabaseAccessor<DriftStorage> {
   Files get files => attachedDatabase.files;
   Logging get logging => attachedDatabase.logging;
   Requests get requests => attachedDatabase.requests;
-  OfflineRequestQueue get offlineRequestQueue =>
-      attachedDatabase.offlineRequestQueue;
-  OfflineRequestQueueFiles get offlineRequestQueueFiles =>
-      attachedDatabase.offlineRequestQueueFiles;
+  RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
+  RequestsQueueFiles get requestsQueueFiles =>
+      attachedDatabase.requestsQueueFiles;
   Selectable<DatabaseNode> _getNodes() {
     return customSelect('SELECT * FROM nodes', variables: [], readsFrom: {
       nodes,

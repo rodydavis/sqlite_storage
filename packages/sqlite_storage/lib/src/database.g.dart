@@ -1959,12 +1959,12 @@ class RequestsCompanion extends UpdateCompanion<CachedRequest> {
   }
 }
 
-class OfflineRequestQueue extends Table
-    with TableInfo<OfflineRequestQueue, OfflineRequestQueueData> {
+class RequestsQueue extends Table
+    with TableInfo<RequestsQueue, RequestsQueueData> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  OfflineRequestQueue(this.attachedDatabase, [this._alias]);
+  RequestsQueue(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
       hasAutoIncrement: true,
@@ -1986,11 +1986,12 @@ class OfflineRequestQueue extends Table
       type: DriftSqlType.blob,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<String> headers = GeneratedColumn<String>(
-      'headers', aliasedName, false,
-      type: DriftSqlType.string,
-      requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL');
+  late final GeneratedColumnWithTypeConverter<Map<String, dynamic>, String>
+      headers = GeneratedColumn<String>('headers', aliasedName, false,
+              type: DriftSqlType.string,
+              requiredDuringInsert: true,
+              $customConstraints: 'NOT NULL')
+          .withConverter<Map<String, dynamic>>(RequestsQueue.$converterheaders);
   late final GeneratedColumn<int> retryCount = GeneratedColumn<int>(
       'retry_count', aliasedName, false,
       type: DriftSqlType.int,
@@ -2002,11 +2003,6 @@ class OfflineRequestQueue extends Table
       type: DriftSqlType.string,
       requiredDuringInsert: false,
       $customConstraints: '');
-  late final GeneratedColumn<String> user = GeneratedColumn<String>(
-      'user', aliasedName, true,
-      type: DriftSqlType.string,
-      requiredDuringInsert: false,
-      $customConstraints: '');
   late final GeneratedColumn<int> date = GeneratedColumn<int>(
       'date', aliasedName, false,
       type: DriftSqlType.int,
@@ -2014,19 +2010,18 @@ class OfflineRequestQueue extends Table
       $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns =>
-      [id, url, method, body, headers, retryCount, description, user, date];
+      [id, url, method, body, headers, retryCount, description, date];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'offline_request_queue';
+  static const String $name = 'requests_queue';
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  OfflineRequestQueueData map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
+  RequestsQueueData map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OfflineRequestQueueData(
+    return RequestsQueueData(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
       url: attachedDatabase.typeMapping
@@ -2035,40 +2030,40 @@ class OfflineRequestQueue extends Table
           .read(DriftSqlType.string, data['${effectivePrefix}method'])!,
       body: attachedDatabase.typeMapping
           .read(DriftSqlType.blob, data['${effectivePrefix}body']),
-      headers: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}headers'])!,
+      headers: RequestsQueue.$converterheaders.fromSql(attachedDatabase
+          .typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}headers'])!),
       retryCount: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}retry_count'])!,
       description: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}description']),
-      user: attachedDatabase.typeMapping
-          .read(DriftSqlType.string, data['${effectivePrefix}user']),
       date: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}date'])!,
     );
   }
 
   @override
-  OfflineRequestQueue createAlias(String alias) {
-    return OfflineRequestQueue(attachedDatabase, alias);
+  RequestsQueue createAlias(String alias) {
+    return RequestsQueue(attachedDatabase, alias);
   }
 
+  static TypeConverter<Map<String, dynamic>, String> $converterheaders =
+      const JsonMapConverter();
   @override
   bool get dontWriteConstraints => true;
 }
 
-class OfflineRequestQueueData extends DataClass
-    implements Insertable<OfflineRequestQueueData> {
+class RequestsQueueData extends DataClass
+    implements Insertable<RequestsQueueData> {
   int id;
   String url;
   String method;
   Uint8List? body;
-  String headers;
+  Map<String, dynamic> headers;
   int retryCount;
   String? description;
-  String? user;
   int date;
-  OfflineRequestQueueData(
+  RequestsQueueData(
       {required this.id,
       required this.url,
       required this.method,
@@ -2076,7 +2071,6 @@ class OfflineRequestQueueData extends DataClass
       required this.headers,
       required this.retryCount,
       this.description,
-      this.user,
       required this.date});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2087,20 +2081,20 @@ class OfflineRequestQueueData extends DataClass
     if (!nullToAbsent || body != null) {
       map['body'] = Variable<Uint8List>(body);
     }
-    map['headers'] = Variable<String>(headers);
+    {
+      map['headers'] =
+          Variable<String>(RequestsQueue.$converterheaders.toSql(headers));
+    }
     map['retry_count'] = Variable<int>(retryCount);
     if (!nullToAbsent || description != null) {
       map['description'] = Variable<String>(description);
-    }
-    if (!nullToAbsent || user != null) {
-      map['user'] = Variable<String>(user);
     }
     map['date'] = Variable<int>(date);
     return map;
   }
 
-  OfflineRequestQueueCompanion toCompanion(bool nullToAbsent) {
-    return OfflineRequestQueueCompanion(
+  RequestsQueueCompanion toCompanion(bool nullToAbsent) {
+    return RequestsQueueCompanion(
       id: Value(id),
       url: Value(url),
       method: Value(method),
@@ -2110,23 +2104,21 @@ class OfflineRequestQueueData extends DataClass
       description: description == null && nullToAbsent
           ? const Value.absent()
           : Value(description),
-      user: user == null && nullToAbsent ? const Value.absent() : Value(user),
       date: Value(date),
     );
   }
 
-  factory OfflineRequestQueueData.fromJson(Map<String, dynamic> json,
+  factory RequestsQueueData.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OfflineRequestQueueData(
+    return RequestsQueueData(
       id: serializer.fromJson<int>(json['id']),
       url: serializer.fromJson<String>(json['url']),
       method: serializer.fromJson<String>(json['method']),
       body: serializer.fromJson<Uint8List?>(json['body']),
-      headers: serializer.fromJson<String>(json['headers']),
+      headers: serializer.fromJson<Map<String, dynamic>>(json['headers']),
       retryCount: serializer.fromJson<int>(json['retry_count']),
       description: serializer.fromJson<String?>(json['description']),
-      user: serializer.fromJson<String?>(json['user']),
       date: serializer.fromJson<int>(json['date']),
     );
   }
@@ -2138,25 +2130,23 @@ class OfflineRequestQueueData extends DataClass
       'url': serializer.toJson<String>(url),
       'method': serializer.toJson<String>(method),
       'body': serializer.toJson<Uint8List?>(body),
-      'headers': serializer.toJson<String>(headers),
+      'headers': serializer.toJson<Map<String, dynamic>>(headers),
       'retry_count': serializer.toJson<int>(retryCount),
       'description': serializer.toJson<String?>(description),
-      'user': serializer.toJson<String?>(user),
       'date': serializer.toJson<int>(date),
     };
   }
 
-  OfflineRequestQueueData copyWith(
+  RequestsQueueData copyWith(
           {int? id,
           String? url,
           String? method,
           Value<Uint8List?> body = const Value.absent(),
-          String? headers,
+          Map<String, dynamic>? headers,
           int? retryCount,
           Value<String?> description = const Value.absent(),
-          Value<String?> user = const Value.absent(),
           int? date}) =>
-      OfflineRequestQueueData(
+      RequestsQueueData(
         id: id ?? this.id,
         url: url ?? this.url,
         method: method ?? this.method,
@@ -2164,12 +2154,11 @@ class OfflineRequestQueueData extends DataClass
         headers: headers ?? this.headers,
         retryCount: retryCount ?? this.retryCount,
         description: description.present ? description.value : this.description,
-        user: user.present ? user.value : this.user,
         date: date ?? this.date,
       );
   @override
   String toString() {
-    return (StringBuffer('OfflineRequestQueueData(')
+    return (StringBuffer('RequestsQueueData(')
           ..write('id: $id, ')
           ..write('url: $url, ')
           ..write('method: $method, ')
@@ -2177,27 +2166,18 @@ class OfflineRequestQueueData extends DataClass
           ..write('headers: $headers, ')
           ..write('retryCount: $retryCount, ')
           ..write('description: $description, ')
-          ..write('user: $user, ')
           ..write('date: $date')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-      id,
-      url,
-      method,
-      $driftBlobEquality.hash(body),
-      headers,
-      retryCount,
-      description,
-      user,
-      date);
+  int get hashCode => Object.hash(id, url, method,
+      $driftBlobEquality.hash(body), headers, retryCount, description, date);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is OfflineRequestQueueData &&
+      (other is RequestsQueueData &&
           other.id == this.id &&
           other.url == this.url &&
           other.method == this.method &&
@@ -2205,22 +2185,19 @@ class OfflineRequestQueueData extends DataClass
           other.headers == this.headers &&
           other.retryCount == this.retryCount &&
           other.description == this.description &&
-          other.user == this.user &&
           other.date == this.date);
 }
 
-class OfflineRequestQueueCompanion
-    extends UpdateCompanion<OfflineRequestQueueData> {
+class RequestsQueueCompanion extends UpdateCompanion<RequestsQueueData> {
   Value<int> id;
   Value<String> url;
   Value<String> method;
   Value<Uint8List?> body;
-  Value<String> headers;
+  Value<Map<String, dynamic>> headers;
   Value<int> retryCount;
   Value<String?> description;
-  Value<String?> user;
   Value<int> date;
-  OfflineRequestQueueCompanion({
+  RequestsQueueCompanion({
     this.id = const Value.absent(),
     this.url = const Value.absent(),
     this.method = const Value.absent(),
@@ -2228,24 +2205,22 @@ class OfflineRequestQueueCompanion
     this.headers = const Value.absent(),
     this.retryCount = const Value.absent(),
     this.description = const Value.absent(),
-    this.user = const Value.absent(),
     this.date = const Value.absent(),
   });
-  OfflineRequestQueueCompanion.insert({
+  RequestsQueueCompanion.insert({
     this.id = const Value.absent(),
     required String url,
     required String method,
     this.body = const Value.absent(),
-    required String headers,
+    required Map<String, dynamic> headers,
     this.retryCount = const Value.absent(),
     this.description = const Value.absent(),
-    this.user = const Value.absent(),
     required int date,
   })  : url = Value(url),
         method = Value(method),
         headers = Value(headers),
         date = Value(date);
-  static Insertable<OfflineRequestQueueData> custom({
+  static Insertable<RequestsQueueData> custom({
     Expression<int>? id,
     Expression<String>? url,
     Expression<String>? method,
@@ -2253,7 +2228,6 @@ class OfflineRequestQueueCompanion
     Expression<String>? headers,
     Expression<int>? retryCount,
     Expression<String>? description,
-    Expression<String>? user,
     Expression<int>? date,
   }) {
     return RawValuesInsertable({
@@ -2264,22 +2238,20 @@ class OfflineRequestQueueCompanion
       if (headers != null) 'headers': headers,
       if (retryCount != null) 'retry_count': retryCount,
       if (description != null) 'description': description,
-      if (user != null) 'user': user,
       if (date != null) 'date': date,
     });
   }
 
-  OfflineRequestQueueCompanion copyWith(
+  RequestsQueueCompanion copyWith(
       {Value<int>? id,
       Value<String>? url,
       Value<String>? method,
       Value<Uint8List?>? body,
-      Value<String>? headers,
+      Value<Map<String, dynamic>>? headers,
       Value<int>? retryCount,
       Value<String?>? description,
-      Value<String?>? user,
       Value<int>? date}) {
-    return OfflineRequestQueueCompanion(
+    return RequestsQueueCompanion(
       id: id ?? this.id,
       url: url ?? this.url,
       method: method ?? this.method,
@@ -2287,7 +2259,6 @@ class OfflineRequestQueueCompanion
       headers: headers ?? this.headers,
       retryCount: retryCount ?? this.retryCount,
       description: description ?? this.description,
-      user: user ?? this.user,
       date: date ?? this.date,
     );
   }
@@ -2308,16 +2279,14 @@ class OfflineRequestQueueCompanion
       map['body'] = Variable<Uint8List>(body.value);
     }
     if (headers.present) {
-      map['headers'] = Variable<String>(headers.value);
+      map['headers'] = Variable<String>(
+          RequestsQueue.$converterheaders.toSql(headers.value));
     }
     if (retryCount.present) {
       map['retry_count'] = Variable<int>(retryCount.value);
     }
     if (description.present) {
       map['description'] = Variable<String>(description.value);
-    }
-    if (user.present) {
-      map['user'] = Variable<String>(user.value);
     }
     if (date.present) {
       map['date'] = Variable<int>(date.value);
@@ -2327,7 +2296,7 @@ class OfflineRequestQueueCompanion
 
   @override
   String toString() {
-    return (StringBuffer('OfflineRequestQueueCompanion(')
+    return (StringBuffer('RequestsQueueCompanion(')
           ..write('id: $id, ')
           ..write('url: $url, ')
           ..write('method: $method, ')
@@ -2335,30 +2304,29 @@ class OfflineRequestQueueCompanion
           ..write('headers: $headers, ')
           ..write('retryCount: $retryCount, ')
           ..write('description: $description, ')
-          ..write('user: $user, ')
           ..write('date: $date')
           ..write(')'))
         .toString();
   }
 }
 
-class OfflineRequestQueueFiles extends Table
-    with TableInfo<OfflineRequestQueueFiles, OfflineRequestQueueFile> {
+class RequestsQueueFiles extends Table
+    with TableInfo<RequestsQueueFiles, RequestsQueueFile> {
   @override
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
-  OfflineRequestQueueFiles(this.attachedDatabase, [this._alias]);
+  RequestsQueueFiles(this.attachedDatabase, [this._alias]);
   late final GeneratedColumn<int> id = GeneratedColumn<int>(
       'id', aliasedName, false,
       hasAutoIncrement: true,
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
-  late final GeneratedColumn<int> offlineRequestQueueId = GeneratedColumn<int>(
-      'offline_request_queue_id', aliasedName, false,
+  late final GeneratedColumn<int> requestsQueueId = GeneratedColumn<int>(
+      'requests_queue_id', aliasedName, false,
       type: DriftSqlType.int,
       requiredDuringInsert: true,
-      $customConstraints: 'NOT NULL REFERENCES offline_request_queue(id)');
+      $customConstraints: 'NOT NULL REFERENCES requests_queue(id)');
   late final GeneratedColumn<String> field = GeneratedColumn<String>(
       'field', aliasedName, false,
       type: DriftSqlType.string,
@@ -2370,24 +2338,22 @@ class OfflineRequestQueueFiles extends Table
       requiredDuringInsert: true,
       $customConstraints: 'NOT NULL');
   @override
-  List<GeneratedColumn> get $columns =>
-      [id, offlineRequestQueueId, field, value];
+  List<GeneratedColumn> get $columns => [id, requestsQueueId, field, value];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
-  static const String $name = 'offline_request_queue_files';
+  static const String $name = 'requests_queue_files';
   @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
-  OfflineRequestQueueFile map(Map<String, dynamic> data,
-      {String? tablePrefix}) {
+  RequestsQueueFile map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OfflineRequestQueueFile(
+    return RequestsQueueFile(
       id: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
-      offlineRequestQueueId: attachedDatabase.typeMapping.read(DriftSqlType.int,
-          data['${effectivePrefix}offline_request_queue_id'])!,
+      requestsQueueId: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}requests_queue_id'])!,
       field: attachedDatabase.typeMapping
           .read(DriftSqlType.string, data['${effectivePrefix}field'])!,
       value: attachedDatabase.typeMapping
@@ -2396,51 +2362,50 @@ class OfflineRequestQueueFiles extends Table
   }
 
   @override
-  OfflineRequestQueueFiles createAlias(String alias) {
-    return OfflineRequestQueueFiles(attachedDatabase, alias);
+  RequestsQueueFiles createAlias(String alias) {
+    return RequestsQueueFiles(attachedDatabase, alias);
   }
 
   @override
   bool get dontWriteConstraints => true;
 }
 
-class OfflineRequestQueueFile extends DataClass
-    implements Insertable<OfflineRequestQueueFile> {
+class RequestsQueueFile extends DataClass
+    implements Insertable<RequestsQueueFile> {
   int id;
-  int offlineRequestQueueId;
+  int requestsQueueId;
   String field;
   Uint8List value;
-  OfflineRequestQueueFile(
+  RequestsQueueFile(
       {required this.id,
-      required this.offlineRequestQueueId,
+      required this.requestsQueueId,
       required this.field,
       required this.value});
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
     map['id'] = Variable<int>(id);
-    map['offline_request_queue_id'] = Variable<int>(offlineRequestQueueId);
+    map['requests_queue_id'] = Variable<int>(requestsQueueId);
     map['field'] = Variable<String>(field);
     map['value'] = Variable<Uint8List>(value);
     return map;
   }
 
-  OfflineRequestQueueFilesCompanion toCompanion(bool nullToAbsent) {
-    return OfflineRequestQueueFilesCompanion(
+  RequestsQueueFilesCompanion toCompanion(bool nullToAbsent) {
+    return RequestsQueueFilesCompanion(
       id: Value(id),
-      offlineRequestQueueId: Value(offlineRequestQueueId),
+      requestsQueueId: Value(requestsQueueId),
       field: Value(field),
       value: Value(value),
     );
   }
 
-  factory OfflineRequestQueueFile.fromJson(Map<String, dynamic> json,
+  factory RequestsQueueFile.fromJson(Map<String, dynamic> json,
       {ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OfflineRequestQueueFile(
+    return RequestsQueueFile(
       id: serializer.fromJson<int>(json['id']),
-      offlineRequestQueueId:
-          serializer.fromJson<int>(json['offline_request_queue_id']),
+      requestsQueueId: serializer.fromJson<int>(json['requests_queue_id']),
       field: serializer.fromJson<String>(json['field']),
       value: serializer.fromJson<Uint8List>(json['value']),
     );
@@ -2450,29 +2415,25 @@ class OfflineRequestQueueFile extends DataClass
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
       'id': serializer.toJson<int>(id),
-      'offline_request_queue_id': serializer.toJson<int>(offlineRequestQueueId),
+      'requests_queue_id': serializer.toJson<int>(requestsQueueId),
       'field': serializer.toJson<String>(field),
       'value': serializer.toJson<Uint8List>(value),
     };
   }
 
-  OfflineRequestQueueFile copyWith(
-          {int? id,
-          int? offlineRequestQueueId,
-          String? field,
-          Uint8List? value}) =>
-      OfflineRequestQueueFile(
+  RequestsQueueFile copyWith(
+          {int? id, int? requestsQueueId, String? field, Uint8List? value}) =>
+      RequestsQueueFile(
         id: id ?? this.id,
-        offlineRequestQueueId:
-            offlineRequestQueueId ?? this.offlineRequestQueueId,
+        requestsQueueId: requestsQueueId ?? this.requestsQueueId,
         field: field ?? this.field,
         value: value ?? this.value,
       );
   @override
   String toString() {
-    return (StringBuffer('OfflineRequestQueueFile(')
+    return (StringBuffer('RequestsQueueFile(')
           ..write('id: $id, ')
-          ..write('offlineRequestQueueId: $offlineRequestQueueId, ')
+          ..write('requestsQueueId: $requestsQueueId, ')
           ..write('field: $field, ')
           ..write('value: $value')
           ..write(')'))
@@ -2480,62 +2441,59 @@ class OfflineRequestQueueFile extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(
-      id, offlineRequestQueueId, field, $driftBlobEquality.hash(value));
+  int get hashCode =>
+      Object.hash(id, requestsQueueId, field, $driftBlobEquality.hash(value));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is OfflineRequestQueueFile &&
+      (other is RequestsQueueFile &&
           other.id == this.id &&
-          other.offlineRequestQueueId == this.offlineRequestQueueId &&
+          other.requestsQueueId == this.requestsQueueId &&
           other.field == this.field &&
           $driftBlobEquality.equals(other.value, this.value));
 }
 
-class OfflineRequestQueueFilesCompanion
-    extends UpdateCompanion<OfflineRequestQueueFile> {
+class RequestsQueueFilesCompanion extends UpdateCompanion<RequestsQueueFile> {
   Value<int> id;
-  Value<int> offlineRequestQueueId;
+  Value<int> requestsQueueId;
   Value<String> field;
   Value<Uint8List> value;
-  OfflineRequestQueueFilesCompanion({
+  RequestsQueueFilesCompanion({
     this.id = const Value.absent(),
-    this.offlineRequestQueueId = const Value.absent(),
+    this.requestsQueueId = const Value.absent(),
     this.field = const Value.absent(),
     this.value = const Value.absent(),
   });
-  OfflineRequestQueueFilesCompanion.insert({
+  RequestsQueueFilesCompanion.insert({
     this.id = const Value.absent(),
-    required int offlineRequestQueueId,
+    required int requestsQueueId,
     required String field,
     required Uint8List value,
-  })  : offlineRequestQueueId = Value(offlineRequestQueueId),
+  })  : requestsQueueId = Value(requestsQueueId),
         field = Value(field),
         value = Value(value);
-  static Insertable<OfflineRequestQueueFile> custom({
+  static Insertable<RequestsQueueFile> custom({
     Expression<int>? id,
-    Expression<int>? offlineRequestQueueId,
+    Expression<int>? requestsQueueId,
     Expression<String>? field,
     Expression<Uint8List>? value,
   }) {
     return RawValuesInsertable({
       if (id != null) 'id': id,
-      if (offlineRequestQueueId != null)
-        'offline_request_queue_id': offlineRequestQueueId,
+      if (requestsQueueId != null) 'requests_queue_id': requestsQueueId,
       if (field != null) 'field': field,
       if (value != null) 'value': value,
     });
   }
 
-  OfflineRequestQueueFilesCompanion copyWith(
+  RequestsQueueFilesCompanion copyWith(
       {Value<int>? id,
-      Value<int>? offlineRequestQueueId,
+      Value<int>? requestsQueueId,
       Value<String>? field,
       Value<Uint8List>? value}) {
-    return OfflineRequestQueueFilesCompanion(
+    return RequestsQueueFilesCompanion(
       id: id ?? this.id,
-      offlineRequestQueueId:
-          offlineRequestQueueId ?? this.offlineRequestQueueId,
+      requestsQueueId: requestsQueueId ?? this.requestsQueueId,
       field: field ?? this.field,
       value: value ?? this.value,
     );
@@ -2547,9 +2505,8 @@ class OfflineRequestQueueFilesCompanion
     if (id.present) {
       map['id'] = Variable<int>(id.value);
     }
-    if (offlineRequestQueueId.present) {
-      map['offline_request_queue_id'] =
-          Variable<int>(offlineRequestQueueId.value);
+    if (requestsQueueId.present) {
+      map['requests_queue_id'] = Variable<int>(requestsQueueId.value);
     }
     if (field.present) {
       map['field'] = Variable<String>(field.value);
@@ -2562,9 +2519,9 @@ class OfflineRequestQueueFilesCompanion
 
   @override
   String toString() {
-    return (StringBuffer('OfflineRequestQueueFilesCompanion(')
+    return (StringBuffer('RequestsQueueFilesCompanion(')
           ..write('id: $id, ')
-          ..write('offlineRequestQueueId: $offlineRequestQueueId, ')
+          ..write('requestsQueueId: $requestsQueueId, ')
           ..write('field: $field, ')
           ..write('value: $value')
           ..write(')'))
@@ -2588,10 +2545,8 @@ abstract class _$DriftStorage extends GeneratedDatabase {
       'target_idx', 'CREATE INDEX IF NOT EXISTS target_idx ON edges (target)');
   late final Logging logging = Logging(this);
   late final Requests requests = Requests(this);
-  late final OfflineRequestQueue offlineRequestQueue =
-      OfflineRequestQueue(this);
-  late final OfflineRequestQueueFiles offlineRequestQueueFiles =
-      OfflineRequestQueueFiles(this);
+  late final RequestsQueue requestsQueue = RequestsQueue(this);
+  late final RequestsQueueFiles requestsQueueFiles = RequestsQueueFiles(this);
   late final KeyValueDao keyValueDao = KeyValueDao(this as DriftStorage);
   late final DocumentsDao documentsDao = DocumentsDao(this as DriftStorage);
   late final FilesDao filesDao = FilesDao(this as DriftStorage);
@@ -2615,8 +2570,8 @@ abstract class _$DriftStorage extends GeneratedDatabase {
         targetIdx,
         logging,
         requests,
-        offlineRequestQueue,
-        offlineRequestQueueFiles
+        requestsQueue,
+        requestsQueueFiles
       ];
   @override
   DriftDatabaseOptions get options =>

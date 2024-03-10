@@ -12,10 +12,9 @@ mixin _$DocumentsDaoMixin on DatabaseAccessor<DriftStorage> {
   Edges get edges => attachedDatabase.edges;
   Logging get logging => attachedDatabase.logging;
   Requests get requests => attachedDatabase.requests;
-  OfflineRequestQueue get offlineRequestQueue =>
-      attachedDatabase.offlineRequestQueue;
-  OfflineRequestQueueFiles get offlineRequestQueueFiles =>
-      attachedDatabase.offlineRequestQueueFiles;
+  RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
+  RequestsQueueFiles get requestsQueueFiles =>
+      attachedDatabase.requestsQueueFiles;
   Selectable<Doc> _search(String query) {
     return customSelect(
         'SELECT * FROM documents WHERE(path LIKE ?1 OR data LIKE ?1)AND((ttl IS NOT NULL AND ttl + updated < unixepoch())OR ttl IS NULL)',

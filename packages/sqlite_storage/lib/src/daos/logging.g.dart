@@ -12,10 +12,9 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
   Nodes get nodes => attachedDatabase.nodes;
   Edges get edges => attachedDatabase.edges;
   Requests get requests => attachedDatabase.requests;
-  OfflineRequestQueue get offlineRequestQueue =>
-      attachedDatabase.offlineRequestQueue;
-  OfflineRequestQueueFiles get offlineRequestQueueFiles =>
-      attachedDatabase.offlineRequestQueueFiles;
+  RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
+  RequestsQueueFiles get requestsQueueFiles =>
+      attachedDatabase.requestsQueueFiles;
   Future<int> _add(String? message, int date, int? sequenceNumber, int level,
       String name, String? error, String? stackTrace) {
     return customInsert(

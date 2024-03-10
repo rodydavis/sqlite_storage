@@ -12,10 +12,9 @@ mixin _$AnalyticsDaoMixin on DatabaseAccessor<DriftStorage> {
   Edges get edges => attachedDatabase.edges;
   Logging get logging => attachedDatabase.logging;
   Requests get requests => attachedDatabase.requests;
-  OfflineRequestQueue get offlineRequestQueue =>
-      attachedDatabase.offlineRequestQueue;
-  OfflineRequestQueueFiles get offlineRequestQueueFiles =>
-      attachedDatabase.offlineRequestQueueFiles;
+  RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
+  RequestsQueueFiles get requestsQueueFiles =>
+      attachedDatabase.requestsQueueFiles;
   Future<int> _add(String type, Map<String, dynamic> parameters, int date) {
     return customInsert(
       'INSERT INTO analytics (type, parameters, date) VALUES (?1, ?2, ?3)',

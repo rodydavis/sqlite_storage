@@ -31,3 +31,45 @@ _saveRequest:
         :body,
         :date
     );
+
+_addRequestToQueue:
+    INSERT OR REPLACE INTO requests_queue (
+        url,
+        method,
+        body,
+        headers,
+        headers,
+        description,
+        date
+    ) VALUES (
+        :url,
+        :method,
+        :body,
+        :headers,
+        :headers,
+        :description,
+        :date
+    );
+
+_addRequestFileToQueue:
+    INSERT OR REPLACE INTO requests_queue_files (
+        requests_queue_id,
+        field,
+        value
+    ) VALUES (
+        :requests_queue_id,
+        :field,
+        :value
+    );
+
+_removeRequestFromQueue:
+    DELETE FROM requests_queue
+    WHERE id = :id;
+
+_removeRequestFileFromQueue:
+    DELETE FROM requests_queue_files
+    WHERE id = :id;
+
+_removeRequestFilesFromQueue:
+    DELETE FROM requests_queue_files
+    WHERE requests_queue_id = :id;

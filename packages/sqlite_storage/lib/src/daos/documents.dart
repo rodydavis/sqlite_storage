@@ -13,8 +13,12 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
     with _$DocumentsDaoMixin {
   DocumentsDao(super.db);
 
-  Future<void> remove(String path) {
-    return _delete(path);
+  Future<void> remove(String path, {bool recursive = false}) {
+    if (recursive) {
+      return _deleteFilter(path);
+    } else {
+      return _delete(path);
+    }
   }
 
   Future<void> removeAll(List<String> paths) {
@@ -59,13 +63,6 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
 
   Future<void> removeExpired() {
     return _removeExpired();
-  }
-}
-
-extension on String? {
-  DocumentData? toData() {
-    if (this == null) return null;
-    return jsonDecode(this!) as Map<String, Object?>;
   }
 }
 

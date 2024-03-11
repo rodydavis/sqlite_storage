@@ -1,5 +1,3 @@
-import 'dart:convert';
-
 import 'package:drift/drift.dart';
 
 import '../database.dart';
@@ -15,7 +13,7 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
 
   Future<void> remove(String path, {bool recursive = false}) {
     if (recursive) {
-      return _deleteFilter(path);
+      return _deleteFilter('$path%');
     } else {
       return _delete(path);
     }

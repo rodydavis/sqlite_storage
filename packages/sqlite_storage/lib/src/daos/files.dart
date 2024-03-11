@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+import 'package:crypto/crypto.dart';
 import 'package:drift/drift.dart';
 import 'package:mime/mime.dart';
 
@@ -93,6 +94,7 @@ typedef Metadata = ({
   DateTime updated,
   String? mimeType,
   int? size,
+  String? hash,
 });
 
 class DatabaseFile extends DatabaseFileEntity {
@@ -120,6 +122,7 @@ class DatabaseFile extends DatabaseFileEntity {
       updated: DateTime.fromMillisecondsSinceEpoch(item.updated),
       size: item.size,
       mimeType: item.mimeType,
+      hash: item.hash,
     );
   }
 
@@ -129,6 +132,7 @@ class DatabaseFile extends DatabaseFileEntity {
       path,
       Uint8List.fromList(bytes),
       mimeType,
+      sha256.convert(bytes).toString(),
       bytes.length,
       DateTime.now().millisecond,
       DateTime.now().millisecond,

@@ -74,13 +74,14 @@ mixin _$FilesDaoMixin on DatabaseAccessor<DriftStorage> {
   }
 
   Future<List<FileData>> _set(String path, Uint8List? data, String? mimeType,
-      int? size, int created, int updated) {
+      String? hash, int? size, int created, int updated) {
     return customWriteReturning(
-        'INSERT OR REPLACE INTO files (path, data, mime_type, size, created, updated) VALUES (?1, ?2, ?3, ?4, ?5, ?6) RETURNING *',
+        'INSERT OR REPLACE INTO files (path, data, mime_type, hash, size, created, updated) VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7) RETURNING *',
         variables: [
           Variable<String>(path),
           Variable<Uint8List>(data),
           Variable<String>(mimeType),
+          Variable<String>(hash),
           Variable<int>(size),
           Variable<int>(created),
           Variable<int>(updated)

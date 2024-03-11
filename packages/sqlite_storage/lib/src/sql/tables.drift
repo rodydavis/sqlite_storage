@@ -27,6 +27,7 @@ CREATE TABLE files (
   data BLOB,
   mime_type TEXT,
   size INTEGER,
+  hash TEXT,
   created INTEGER NOT NULL,
   updated INTEGER NOT NULL,
   UNIQUE (path)

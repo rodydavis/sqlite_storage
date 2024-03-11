@@ -704,6 +704,11 @@ class Files extends Table with TableInfo<Files, FileData> {
       type: DriftSqlType.int,
       requiredDuringInsert: false,
       $customConstraints: '');
+  late final GeneratedColumn<String> hash = GeneratedColumn<String>(
+      'hash', aliasedName, true,
+      type: DriftSqlType.string,
+      requiredDuringInsert: false,
+      $customConstraints: '');
   late final GeneratedColumn<int> created = GeneratedColumn<int>(
       'created', aliasedName, false,
       type: DriftSqlType.int,
@@ -716,7 +721,7 @@ class Files extends Table with TableInfo<Files, FileData> {
       $customConstraints: 'NOT NULL');
   @override
   List<GeneratedColumn> get $columns =>
-      [path, data, mimeType, size, created, updated];
+      [path, data, mimeType, size, hash, created, updated];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -740,6 +745,8 @@ class Files extends Table with TableInfo<Files, FileData> {
           .read(DriftSqlType.string, data['${effectivePrefix}mime_type']),
       size: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}size']),
+      hash: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}hash']),
       created: attachedDatabase.typeMapping
           .read(DriftSqlType.int, data['${effectivePrefix}created'])!,
       updated: attachedDatabase.typeMapping
@@ -763,6 +770,7 @@ class FileData extends DataClass implements Insertable<FileData> {
   Uint8List? data;
   String? mimeType;
   int? size;
+  String? hash;
   int created;
   int updated;
   FileData(
@@ -770,6 +778,7 @@ class FileData extends DataClass implements Insertable<FileData> {
       this.data,
       this.mimeType,
       this.size,
+      this.hash,
       required this.created,
       required this.updated});
   @override
@@ -785,6 +794,9 @@ class FileData extends DataClass implements Insertable<FileData> {
     if (!nullToAbsent || size != null) {
       map['size'] = Variable<int>(size);
     }
+    if (!nullToAbsent || hash != null) {
+      map['hash'] = Variable<String>(hash);
+    }
     map['created'] = Variable<int>(created);
     map['updated'] = Variable<int>(updated);
     return map;
@@ -798,6 +810,7 @@ class FileData extends DataClass implements Insertable<FileData> {
           ? const Value.absent()
           : Value(mimeType),
       size: size == null && nullToAbsent ? const Value.absent() : Value(size),
+      hash: hash == null && nullToAbsent ? const Value.absent() : Value(hash),
       created: Value(created),
       updated: Value(updated),
     );
@@ -811,6 +824,7 @@ class FileData extends DataClass implements Insertable<FileData> {
       data: serializer.fromJson<Uint8List?>(json['data']),
       mimeType: serializer.fromJson<String?>(json['mime_type']),
       size: serializer.fromJson<int?>(json['size']),
+      hash: serializer.fromJson<String?>(json['hash']),
       created: serializer.fromJson<int>(json['created']),
       updated: serializer.fromJson<int>(json['updated']),
     );
@@ -823,6 +837,7 @@ class FileData extends DataClass implements Insertable<FileData> {
       'data': serializer.toJson<Uint8List?>(data),
       'mime_type': serializer.toJson<String?>(mimeType),
       'size': serializer.toJson<int?>(size),
+      'hash': serializer.toJson<String?>(hash),
       'created': serializer.toJson<int>(created),
       'updated': serializer.toJson<int>(updated),
     };
@@ -833,6 +848,7 @@ class FileData extends DataClass implements Insertable<FileData> {
           Value<Uint8List?> data = const Value.absent(),
           Value<String?> mimeType = const Value.absent(),
           Value<int?> size = const Value.absent(),
+          Value<String?> hash = const Value.absent(),
           int? created,
           int? updated}) =>
       FileData(
@@ -840,6 +856,7 @@ class FileData extends DataClass implements Insertable<FileData> {
         data: data.present ? data.value : this.data,
         mimeType: mimeType.present ? mimeType.value : this.mimeType,
         size: size.present ? size.value : this.size,
+        hash: hash.present ? hash.value : this.hash,
         created: created ?? this.created,
         updated: updated ?? this.updated,
       );
@@ -850,6 +867,7 @@ class FileData extends DataClass implements Insertable<FileData> {
           ..write('data: $data, ')
           ..write('mimeType: $mimeType, ')
           ..write('size: $size, ')
+          ..write('hash: $hash, ')
           ..write('created: $created, ')
           ..write('updated: $updated')
           ..write(')'))
@@ -857,8 +875,8 @@ class FileData extends DataClass implements Insertable<FileData> {
   }
 
   @override
-  int get hashCode => Object.hash(
-      path, $driftBlobEquality.hash(data), mimeType, size, created, updated);
+  int get hashCode => Object.hash(path, $driftBlobEquality.hash(data), mimeType,
+      size, hash, created, updated);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -867,6 +885,7 @@ class FileData extends DataClass implements Insertable<FileData> {
           $driftBlobEquality.equals(other.data, this.data) &&
           other.mimeType == this.mimeType &&
           other.size == this.size &&
+          other.hash == this.hash &&
           other.created == this.created &&
           other.updated == this.updated);
 }
@@ -876,6 +895,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
   Value<Uint8List?> data;
   Value<String?> mimeType;
   Value<int?> size;
+  Value<String?> hash;
   Value<int> created;
   Value<int> updated;
   Value<int> rowid;
@@ -884,6 +904,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
     this.data = const Value.absent(),
     this.mimeType = const Value.absent(),
     this.size = const Value.absent(),
+    this.hash = const Value.absent(),
     this.created = const Value.absent(),
     this.updated = const Value.absent(),
     this.rowid = const Value.absent(),
@@ -893,6 +914,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
     this.data = const Value.absent(),
     this.mimeType = const Value.absent(),
     this.size = const Value.absent(),
+    this.hash = const Value.absent(),
     required int created,
     required int updated,
     this.rowid = const Value.absent(),
@@ -904,6 +926,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
     Expression<Uint8List>? data,
     Expression<String>? mimeType,
     Expression<int>? size,
+    Expression<String>? hash,
     Expression<int>? created,
     Expression<int>? updated,
     Expression<int>? rowid,
@@ -913,6 +936,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
       if (data != null) 'data': data,
       if (mimeType != null) 'mime_type': mimeType,
       if (size != null) 'size': size,
+      if (hash != null) 'hash': hash,
       if (created != null) 'created': created,
       if (updated != null) 'updated': updated,
       if (rowid != null) 'rowid': rowid,
@@ -924,6 +948,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
       Value<Uint8List?>? data,
       Value<String?>? mimeType,
       Value<int?>? size,
+      Value<String?>? hash,
       Value<int>? created,
       Value<int>? updated,
       Value<int>? rowid}) {
@@ -932,6 +957,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
       data: data ?? this.data,
       mimeType: mimeType ?? this.mimeType,
       size: size ?? this.size,
+      hash: hash ?? this.hash,
       created: created ?? this.created,
       updated: updated ?? this.updated,
       rowid: rowid ?? this.rowid,
@@ -953,6 +979,9 @@ class FilesCompanion extends UpdateCompanion<FileData> {
     if (size.present) {
       map['size'] = Variable<int>(size.value);
     }
+    if (hash.present) {
+      map['hash'] = Variable<String>(hash.value);
+    }
     if (created.present) {
       map['created'] = Variable<int>(created.value);
     }
@@ -972,6 +1001,7 @@ class FilesCompanion extends UpdateCompanion<FileData> {
           ..write('data: $data, ')
           ..write('mimeType: $mimeType, ')
           ..write('size: $size, ')
+          ..write('hash: $hash, ')
           ..write('created: $created, ')
           ..write('updated: $updated, ')
           ..write('rowid: $rowid')

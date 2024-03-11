@@ -64,6 +64,18 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
   }
 }
 
+// class DocumentMapper<T> {
+//   final DocumentsDao db;
+//   final T Function(DocumentData) read;
+//   final DocumentData Function(T) save;
+
+//   const DocumentMapper(
+//     this.db, {
+//     required this.read,
+//     required this.save,
+//   });
+// }
+
 class Document {
   Document(this.db, this.path) {
     assert(_validPath(path), 'path "$path" must contain odd number of /');

@@ -1,6 +1,6 @@
 name: sqlite_storage_pocketbase
 description: "A new Flutter package project."
-version: 0.0.1
+version: 0.0.2
 publish_to: "none"
 
 environment:
@@ -10,7 +10,7 @@ environment:
 dependencies:
   fetch_client: ^1.0.2
   http: ^1.2.1
-  pocketbase: ^0.18.1
+  pocketbase: ">=0.15.0 <1.0.0"
   sqlite_storage:
     git:
       url: https://github.com/rodydavis/sqlite_storage

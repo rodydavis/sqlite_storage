@@ -62,6 +62,49 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
   Future<void> removeExpired() {
     return _removeExpired();
   }
+
+  Selectable<Doc> query<T extends Comparable>({
+    String? pathEquals,
+    String? pathLike,
+    Filter? filters,
+  }) {
+    final sql = StringBuffer('SELECT * FROM documents ');
+    final args = <Variable>[];
+    bool where = false;
+
+    if (pathEquals != null) {
+      sql.writeln("WHERE path = :path ");
+      args.add(Variable(pathEquals));
+      where = true;
+    } else if (pathLike != null) {
+      sql.writeln("WHERE path != :path ");
+      args.add(Variable(pathLike));
+      where = true;
+    }
+
+    if (filters != null) {
+      if (!where) sql.write('WHERE ');
+      sql.write(filters.toString());
+    }
+
+    return customSelect(
+      sql.toString(),
+      variables: args,
+      readsFrom: {documents},
+    ).asyncMap(documents.mapFromRow);
+  }
+}
+
+enum QueryOperator {
+  greaterThan('>'),
+  greaterThanEquals('>='),
+  lessThan('<'),
+  lessThanEquals('<='),
+  notEquals('!='),
+  equals('=');
+
+  const QueryOperator(this.sql);
+  final String sql;
 }
 
 // class DocumentMapper<T> {
@@ -75,6 +118,54 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
 //     required this.save,
 //   });
 // }
+
+sealed class Filter {
+  final String value;
+  Filter(this.value);
+
+  @override
+  String toString() => '($value)';
+}
+
+class LiteralValue extends Filter {
+  final Object? object;
+
+  LiteralValue(this.object)
+      : super(() {
+          if (object == null) return 'NULL';
+          if (object is String) return "'$object'";
+          return '$object';
+        }());
+}
+
+class JsonField extends Filter {
+  final String field;
+
+  JsonField(this.field) : super("json_extract(data, '\$.$field')");
+}
+
+class AndFilter extends Filter {
+  final Filter left;
+  final Filter right;
+
+  AndFilter(this.left, this.right) : super('$left AND $right');
+}
+
+class OrFilter extends Filter {
+  final Filter left;
+  final Filter right;
+
+  OrFilter(this.left, this.right) : super('$left OR $right');
+}
+
+class CompareFilter extends Filter {
+  final Filter left;
+  final Filter right;
+  final QueryOperator operator;
+
+  CompareFilter(this.left, this.operator, this.right)
+      : super('$left ${operator.sql} $right');
+}
 
 class Document {
   Document(this.db, this.path) {

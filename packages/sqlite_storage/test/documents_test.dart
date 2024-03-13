@@ -235,14 +235,29 @@ void main() {
       expect(posts1DirDocs.length, 2);
     });
 
-    // group('json functions', () {
-    //   test('json_extract', () async {
-    //     final col = db.docs.collection('a');
-    //     col.doc('1').set({'name': 'one', 'age': 1});
-    //     col.doc('2').set({'name': 'two', 'age': 2});
-    //     final results = await db.docs.jsonExtract(['name']).get();
-    //     expect(results, ['one', 'two']);
-    //   });
-    // });
+    group('json functions', () {
+      test('json_extract', () async {
+        final col = db.docs.collection('a');
+        col.doc('1').set({'name': 'one', 'age': 1});
+        col.doc('2').set({'name': 'two', 'age': 2});
+
+        final results = await db.docs.query().get();
+        expect(results.length, 2);
+
+        final results2 = await db.docs.query(pathEquals: 'a/1').get();
+        expect(results2.length, 1);
+
+        final results3 = await db.docs
+            .query(
+              filters: CompareFilter(
+                JsonField('age'),
+                QueryOperator.greaterThan,
+                LiteralValue(1),
+              ),
+            )
+            .get();
+        expect(results3.length, 1);
+      });
+    });
   });
 }

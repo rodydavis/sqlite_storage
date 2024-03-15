@@ -1,4 +1,5 @@
 import 'package:drift/drift.dart';
+// import 'package:query/query.dart' as q;
 
 import '../database.dart';
 
@@ -62,6 +63,44 @@ class DocumentsDao extends DatabaseAccessor<DriftStorage>
   Future<void> removeExpired() {
     return _removeExpired();
   }
+
+  // Selectable<Doc> queryRaw<T extends Comparable>(
+  //   String search, {
+  //   String? pathEquals,
+  //   String? pathLike,
+  // }) {
+  //   final sql = StringBuffer('SELECT * FROM documents ');
+  //   final args = <Variable>[];
+  //   bool where = false;
+
+  //   if (pathEquals != null) {
+  //     sql.writeln("WHERE path = :path ");
+  //     args.add(Variable(pathEquals));
+  //     where = true;
+  //   } else if (pathLike != null) {
+  //     sql.writeln("WHERE path != :path ");
+  //     args.add(Variable(pathLike));
+  //     where = true;
+  //   }
+
+  //   final result = q.parseQuery(search);
+  //   convertQuery(result, sql, args, where);
+
+  //   return customSelect(
+  //     sql.toString(),
+  //     variables: args,
+  //     readsFrom: {documents},
+  //   ).asyncMap(documents.mapFromRow);
+  // }
+
+  // void convertQuery(
+  //   q.Query target,
+  //   StringBuffer sql,
+  //   List<Variable> args,
+  //   bool where,
+  // ) {
+  //   //
+  // }
 
   Selectable<Doc> query<T extends Comparable>({
     String? pathEquals,

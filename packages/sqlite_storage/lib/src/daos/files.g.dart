@@ -156,25 +156,74 @@ mixin _$FilesDaoMixin on DatabaseAccessor<DriftStorage> {
         }).map((QueryRow row) => row.read<int>('count'));
   }
 
-  Selectable<FileData> _getFilesForDirectory(String prefix) {
+  Selectable<GetFilesForDirectoryResult> _getFilesForDirectory(String prefix) {
     return customSelect(
-        'SELECT * FROM files WHERE(path LIKE ?1 AND(LENGTH(path) - LENGTH("REPLACE"(path, \'/\', \'\')))=(LENGTH(?1) - LENGTH("REPLACE"(?1, \'/\', \'\'))))ORDER BY created',
+        'SELECT path, mime_type, size, hash, created, updated FROM files WHERE(path LIKE ?1 AND(LENGTH(path) - LENGTH("REPLACE"(path, \'/\', \'\')))=(LENGTH(?1) - LENGTH("REPLACE"(?1, \'/\', \'\'))))ORDER BY created',
         variables: [
           Variable<String>(prefix)
         ],
         readsFrom: {
           files,
-        }).asyncMap(files.mapFromRow);
+        }).map((QueryRow row) => GetFilesForDirectoryResult(
+          path: row.read<String>('path'),
+          mimeType: row.readNullable<String>('mime_type'),
+          size: row.readNullable<int>('size'),
+          hash: row.readNullable<String>('hash'),
+          created: row.read<int>('created'),
+          updated: row.read<int>('updated'),
+        ));
   }
 
-  Selectable<FileData> _getFilesForDirectoryRecursive(String prefix) {
+  Selectable<GetFilesForDirectoryRecursiveResult>
+      _getFilesForDirectoryRecursive(String prefix) {
     return customSelect(
-        'SELECT * FROM files WHERE path LIKE ?1 ORDER BY created',
+        'SELECT path, mime_type, size, hash, created, updated FROM files WHERE path LIKE ?1 ORDER BY created',
         variables: [
           Variable<String>(prefix)
         ],
         readsFrom: {
           files,
-        }).asyncMap(files.mapFromRow);
+        }).map((QueryRow row) => GetFilesForDirectoryRecursiveResult(
+          path: row.read<String>('path'),
+          mimeType: row.readNullable<String>('mime_type'),
+          size: row.readNullable<int>('size'),
+          hash: row.readNullable<String>('hash'),
+          created: row.read<int>('created'),
+          updated: row.read<int>('updated'),
+        ));
   }
+}
+
+class GetFilesForDirectoryResult {
+  String path;
+  String? mimeType;
+  int? size;
+  String? hash;
+  int created;
+  int updated;
+  GetFilesForDirectoryResult({
+    required this.path,
+    this.mimeType,
+    this.size,
+    this.hash,
+    required this.created,
+    required this.updated,
+  });
+}
+
+class GetFilesForDirectoryRecursiveResult {
+  String path;
+  String? mimeType;
+  int? size;
+  String? hash;
+  int created;
+  int updated;
+  GetFilesForDirectoryRecursiveResult({
+    required this.path,
+    this.mimeType,
+    this.size,
+    this.hash,
+    required this.created,
+    required this.updated,
+  });
 }

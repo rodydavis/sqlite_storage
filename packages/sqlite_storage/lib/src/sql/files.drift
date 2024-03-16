@@ -65,7 +65,13 @@ _getFilesForDirectoryRecursiveCount:
     WHERE path LIKE :prefix;
 
 _getFilesForDirectory:
-    SELECT *
+    SELECT 
+        path,
+        mime_type,
+        size,
+        hash,
+        created,
+        updated
     FROM files
     WHERE (
         path LIKE :prefix
@@ -75,7 +81,13 @@ _getFilesForDirectory:
     ORDER BY created;
 
 _getFilesForDirectoryRecursive:
-    SELECT *
+    SELECT 
+        path,
+        mime_type,
+        size,
+        hash,
+        created,
+        updated
     FROM files
     WHERE path LIKE :prefix
     ORDER BY created;

@@ -72,11 +72,27 @@ sealed class DatabaseFileEntity {
 class DatabaseDirectory extends DatabaseFileEntity {
   DatabaseDirectory(super.db, super.path);
 
-  Selectable<FileData> list({bool recursive = false}) {
+  Selectable<Metadata> list({bool recursive = false}) {
     if (recursive) {
-      return db._getFilesForDirectoryRecursive('$path/%');
+      return db._getFilesForDirectoryRecursive('$path/%').map((e) {
+        return (
+          created: DateTime.fromMillisecondsSinceEpoch(e.created),
+          updated: DateTime.fromMillisecondsSinceEpoch(e.updated),
+          mimeType: e.mimeType,
+          size: e.size,
+          hash: e.hash,
+        );
+      });
     } else {
-      return db._getFilesForDirectory('$path/%');
+      return db._getFilesForDirectory('$path/%').map((e) {
+        return (
+          created: DateTime.fromMillisecondsSinceEpoch(e.created),
+          updated: DateTime.fromMillisecondsSinceEpoch(e.updated),
+          mimeType: e.mimeType,
+          size: e.size,
+          hash: e.hash,
+        );
+      });
     }
   }
 

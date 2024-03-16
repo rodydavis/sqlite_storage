@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io';
 
 import 'package:sqlite_storage/src/daos/files.dart';
 import 'package:sqlite_storage/src/database.dart';
@@ -8,13 +7,10 @@ import 'package:test/test.dart';
 import 'utils/db.dart';
 
 void main() {
-  final tempDir = tempDirFor('files');
-  final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
   late DriftStorage db;
 
   setUp(() async {
     resetDir('files');
-    tempFile.createSync(recursive: true);
     db = DriftStorage(connection());
   });
 

@@ -1,18 +1,13 @@
-import 'dart:io';
-
 import 'package:sqlite_storage/src/database.dart';
 import 'package:test/test.dart';
 
 import 'utils/db.dart';
 
 void main() {
-  final tempDir = tempDirFor('logging');
-  final tempFile = File('${tempDir.path}/test.db')..createSync(recursive: true);
   late DriftStorage db;
 
   setUp(() async {
     resetDir('logging');
-    tempFile.createSync(recursive: true);
     db = DriftStorage(connection());
   });
 

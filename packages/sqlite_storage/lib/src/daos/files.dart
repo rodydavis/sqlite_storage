@@ -81,6 +81,7 @@ class DatabaseDirectory extends DatabaseFileEntity {
           mimeType: e.mimeType,
           size: e.size,
           hash: e.hash,
+          path: e.path,
         );
       });
     } else {
@@ -91,6 +92,7 @@ class DatabaseDirectory extends DatabaseFileEntity {
           mimeType: e.mimeType,
           size: e.size,
           hash: e.hash,
+          path: e.path,
         );
       });
     }
@@ -106,6 +108,7 @@ class DatabaseDirectory extends DatabaseFileEntity {
 }
 
 typedef Metadata = ({
+  String path,
   DateTime created,
   DateTime updated,
   String? mimeType,
@@ -139,6 +142,7 @@ class DatabaseFile extends DatabaseFileEntity {
       size: item.size,
       mimeType: item.mimeType,
       hash: item.hash,
+      path: item.path,
     );
   }
 

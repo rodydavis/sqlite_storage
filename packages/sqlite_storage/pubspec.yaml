@@ -24,3 +24,6 @@ dev_dependencies:
   test: ^1.25.2
 
 flutter:
+
+scripts:
+  build: flutter pub run build_runner build

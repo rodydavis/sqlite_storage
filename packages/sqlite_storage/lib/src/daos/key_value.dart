@@ -94,13 +94,13 @@ class KeyValueDao extends DatabaseAccessor<DriftStorage>
 
   late final $jsonMap = KeyValueContainer<String, Map<String, Object?>>(
     this,
-    read: (val) => jsonDecode(val) as Map<String, Object?>,
+    read: (val) => jsonDecode(val) as Map<String, Object?>? ?? {},
     save: (val) => jsonEncode(val),
   );
 
   late final $jsonList = KeyValueContainer<String, List<Object?>>(
     this,
-    read: (val) => jsonDecode(val) as List<Object?>,
+    read: (val) => jsonDecode(val) as List<Object?>? ?? [],
     save: (val) => jsonEncode(val),
   );
 

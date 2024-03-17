@@ -19,6 +19,7 @@ class OfflineAuthStore extends AsyncAuthStore {
           },
           clear: () async {
             await storage.kv.$string.set(_key, null);
+            await storage.kv.$jsonMap.set(_modelKey, null);
           },
           initial: initial,
         );
@@ -27,6 +28,7 @@ class OfflineAuthStore extends AsyncAuthStore {
     String? auth = await storage.kv.$string.get(_key) ?? '';
     if (auth.trim().isEmpty) {
       await storage.kv.$string.set(_key, null);
+      await storage.kv.$jsonMap.set(_modelKey, null);
       auth = null;
     }
     return OfflineAuthStore(storage, auth);
@@ -45,7 +47,9 @@ class OfflineAuthStore extends AsyncAuthStore {
   void save(String newToken, newModel) {
     super.save(newToken, newModel);
     storage.kv.$string.set(_tokenKey, newToken).ignore();
-    if (newModel is RecordModel) {
+    if (!isValid) {
+      storage.kv.$jsonMap.set(_modelKey, null).ignore();
+    } else if (newModel is RecordModel) {
       final collection = col.doc(newModel.id);
       collection.set(newModel.toJson()).ignore();
       storage.kv.$jsonMap.set(_modelKey, newModel.toJson()).ignore();
@@ -53,8 +57,6 @@ class OfflineAuthStore extends AsyncAuthStore {
       final collection = col.doc(newModel.id);
       collection.set(newModel.toJson()).ignore();
       storage.kv.$jsonMap.set(_modelKey, newModel.toJson()).ignore();
-    } else {
-      storage.kv.$jsonMap.set(_modelKey, null).ignore();
     }
   }
 

@@ -24,7 +24,11 @@ class OfflineAuthStore extends AsyncAuthStore {
         );
 
   static Future<OfflineAuthStore> init(DriftStorage storage) async {
-    final auth = await storage.kv.$string.get(_key);
+    String? auth = await storage.kv.$string.get(_key) ?? '';
+    if (auth.trim().isEmpty) {
+      await storage.kv.$string.set(_key, null);
+      auth = null;
+    }
     return OfflineAuthStore(storage, auth);
   }
 

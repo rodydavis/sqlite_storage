@@ -15,7 +15,7 @@ dependencies:
   http: ^1.2.1
   cachecontrol: ^0.0.1
   crypto: ^3.0.3
-  query: ^2.1.0
+  # query: ^2.1.0
 
 dev_dependencies:
   drift_dev: ^2.16.0

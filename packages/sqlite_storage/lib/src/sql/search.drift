@@ -1,0 +1,106 @@
+import 'tables.drift';
+
+CREATE INDEX search_index_idx_value ON search_index (value);
+
+CREATE TRIGGER search_index_fts_insert
+AFTER INSERT ON search_index
+BEGIN
+    INSERT INTO search_index_fts (rowid, value)
+    VALUES (new.ROWID, new.value);
+END;
+
+CREATE TRIGGER search_index_fts_update
+AFTER UPDATE ON search_index
+BEGIN
+    UPDATE search_index_fts
+    SET [value] = new.value
+    WHERE rowid = old.ROWID;
+END;
+
+CREATE TRIGGER search_index_fts_delete
+AFTER DELETE ON search_index
+BEGIN
+    INSERT INTO search_index_fts (search_index_fts, rowid, [value])
+    VALUES ('delete', old.ROWID, old.value);
+END;
+
+_searchValueLike:
+    SELECT * FROM search_index
+    WHERE [value] LIKE :query
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+_searchValueFts:
+SELECT
+	r.id,
+    highlight(search_index_fts, 2, '<b>', '</b>') value,
+    r.created,
+    r.updated
+FROM search_index_fts 
+INNER JOIN search_index AS r
+	ON r.id = search_index_fts.ROWID
+WHERE search_index_fts MATCH :query
+ORDER BY rank;
+
+addSearchIndex:
+    INSERT INTO search_index (
+        [value],
+        [key],
+        ttl,
+        created,
+        updated
+    ) VALUES (
+        :value,
+        :key,
+        :ttl,
+        datetime('now'),
+        datetime('now')
+    );
+
+getSearchIndexById:
+    SELECT * FROM search_index
+    WHERE id = :id
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+getSearchIndexByKey:
+    SELECT * FROM search_index
+    WHERE [key] = :key
+    AND (
+        (ttl IS NOT NULL AND ttl + updated < unixepoch())
+        OR
+        ttl IS NULL
+    );
+
+deleteSearchIndexById:
+    DELETE FROM search_index
+    WHERE id = :id;
+
+deleteSearchIndexByKey:
+    DELETE FROM search_index
+    WHERE [key] = :key;
+
+updateSearchIndexById:
+    UPDATE search_index SET
+        [value] = :value,
+        ttl = :ttl,
+        updated = datetime('now')
+    WHERE id = :id;
+
+updateSearchIndexByKey:
+    UPDATE search_index SET
+        [value] = :value,
+        ttl = :ttl,
+        updated = datetime('now')
+    WHERE [key] = :key;
+
+removeExpired:
+    DELETE FROM search_index
+    WHERE ttl IS NOT NULL
+    AND ttl + updated < unixepoch();

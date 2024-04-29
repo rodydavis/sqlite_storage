@@ -15,6 +15,8 @@ mixin _$AnalyticsDaoMixin on DatabaseAccessor<DriftStorage> {
   RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
   RequestsQueueFiles get requestsQueueFiles =>
       attachedDatabase.requestsQueueFiles;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Future<int> _add(String type, Map<String, dynamic> parameters, int date) {
     return customInsert(
       'INSERT INTO analytics (type, parameters, date) VALUES (?1, ?2, ?3)',

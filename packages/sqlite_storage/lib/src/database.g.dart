@@ -2559,6 +2559,427 @@ class RequestsQueueFilesCompanion extends UpdateCompanion<RequestsQueueFile> {
   }
 }
 
+class SearchIndex extends Table with TableInfo<SearchIndex, SearchIndexData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SearchIndex(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+      'id', aliasedName, false,
+      hasAutoIncrement: true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: 'PRIMARY KEY AUTOINCREMENT');
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<String> key = GeneratedColumn<String>(
+      'key', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<int> ttl = GeneratedColumn<int>(
+      'ttl', aliasedName, true,
+      type: DriftSqlType.int,
+      requiredDuringInsert: false,
+      $customConstraints: '');
+  late final GeneratedColumn<DateTime> created = GeneratedColumn<DateTime>(
+      'created', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  late final GeneratedColumn<DateTime> updated = GeneratedColumn<DateTime>(
+      'updated', aliasedName, false,
+      type: DriftSqlType.dateTime,
+      requiredDuringInsert: true,
+      $customConstraints: 'NOT NULL');
+  @override
+  List<GeneratedColumn> get $columns => [id, value, key, ttl, created, updated];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'search_index';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SearchIndexData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SearchIndexData(
+      id: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}id'])!,
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value'])!,
+      key: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}key'])!,
+      ttl: attachedDatabase.typeMapping
+          .read(DriftSqlType.int, data['${effectivePrefix}ttl']),
+      created: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}created'])!,
+      updated: attachedDatabase.typeMapping
+          .read(DriftSqlType.dateTime, data['${effectivePrefix}updated'])!,
+    );
+  }
+
+  @override
+  SearchIndex createAlias(String alias) {
+    return SearchIndex(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SearchIndexData extends DataClass implements Insertable<SearchIndexData> {
+  int id;
+  String value;
+  String key;
+  int? ttl;
+  DateTime created;
+  DateTime updated;
+  SearchIndexData(
+      {required this.id,
+      required this.value,
+      required this.key,
+      this.ttl,
+      required this.created,
+      required this.updated});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['value'] = Variable<String>(value);
+    map['key'] = Variable<String>(key);
+    if (!nullToAbsent || ttl != null) {
+      map['ttl'] = Variable<int>(ttl);
+    }
+    map['created'] = Variable<DateTime>(created);
+    map['updated'] = Variable<DateTime>(updated);
+    return map;
+  }
+
+  SearchIndexCompanion toCompanion(bool nullToAbsent) {
+    return SearchIndexCompanion(
+      id: Value(id),
+      value: Value(value),
+      key: Value(key),
+      ttl: ttl == null && nullToAbsent ? const Value.absent() : Value(ttl),
+      created: Value(created),
+      updated: Value(updated),
+    );
+  }
+
+  factory SearchIndexData.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SearchIndexData(
+      id: serializer.fromJson<int>(json['id']),
+      value: serializer.fromJson<String>(json['value']),
+      key: serializer.fromJson<String>(json['key']),
+      ttl: serializer.fromJson<int?>(json['ttl']),
+      created: serializer.fromJson<DateTime>(json['created']),
+      updated: serializer.fromJson<DateTime>(json['updated']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'value': serializer.toJson<String>(value),
+      'key': serializer.toJson<String>(key),
+      'ttl': serializer.toJson<int?>(ttl),
+      'created': serializer.toJson<DateTime>(created),
+      'updated': serializer.toJson<DateTime>(updated),
+    };
+  }
+
+  SearchIndexData copyWith(
+          {int? id,
+          String? value,
+          String? key,
+          Value<int?> ttl = const Value.absent(),
+          DateTime? created,
+          DateTime? updated}) =>
+      SearchIndexData(
+        id: id ?? this.id,
+        value: value ?? this.value,
+        key: key ?? this.key,
+        ttl: ttl.present ? ttl.value : this.ttl,
+        created: created ?? this.created,
+        updated: updated ?? this.updated,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('SearchIndexData(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('key: $key, ')
+          ..write('ttl: $ttl, ')
+          ..write('created: $created, ')
+          ..write('updated: $updated')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, value, key, ttl, created, updated);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SearchIndexData &&
+          other.id == this.id &&
+          other.value == this.value &&
+          other.key == this.key &&
+          other.ttl == this.ttl &&
+          other.created == this.created &&
+          other.updated == this.updated);
+}
+
+class SearchIndexCompanion extends UpdateCompanion<SearchIndexData> {
+  Value<int> id;
+  Value<String> value;
+  Value<String> key;
+  Value<int?> ttl;
+  Value<DateTime> created;
+  Value<DateTime> updated;
+  SearchIndexCompanion({
+    this.id = const Value.absent(),
+    this.value = const Value.absent(),
+    this.key = const Value.absent(),
+    this.ttl = const Value.absent(),
+    this.created = const Value.absent(),
+    this.updated = const Value.absent(),
+  });
+  SearchIndexCompanion.insert({
+    this.id = const Value.absent(),
+    required String value,
+    required String key,
+    this.ttl = const Value.absent(),
+    required DateTime created,
+    required DateTime updated,
+  })  : value = Value(value),
+        key = Value(key),
+        created = Value(created),
+        updated = Value(updated);
+  static Insertable<SearchIndexData> custom({
+    Expression<int>? id,
+    Expression<String>? value,
+    Expression<String>? key,
+    Expression<int>? ttl,
+    Expression<DateTime>? created,
+    Expression<DateTime>? updated,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (value != null) 'value': value,
+      if (key != null) 'key': key,
+      if (ttl != null) 'ttl': ttl,
+      if (created != null) 'created': created,
+      if (updated != null) 'updated': updated,
+    });
+  }
+
+  SearchIndexCompanion copyWith(
+      {Value<int>? id,
+      Value<String>? value,
+      Value<String>? key,
+      Value<int?>? ttl,
+      Value<DateTime>? created,
+      Value<DateTime>? updated}) {
+    return SearchIndexCompanion(
+      id: id ?? this.id,
+      value: value ?? this.value,
+      key: key ?? this.key,
+      ttl: ttl ?? this.ttl,
+      created: created ?? this.created,
+      updated: updated ?? this.updated,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (key.present) {
+      map['key'] = Variable<String>(key.value);
+    }
+    if (ttl.present) {
+      map['ttl'] = Variable<int>(ttl.value);
+    }
+    if (created.present) {
+      map['created'] = Variable<DateTime>(created.value);
+    }
+    if (updated.present) {
+      map['updated'] = Variable<DateTime>(updated.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SearchIndexCompanion(')
+          ..write('id: $id, ')
+          ..write('value: $value, ')
+          ..write('key: $key, ')
+          ..write('ttl: $ttl, ')
+          ..write('created: $created, ')
+          ..write('updated: $updated')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SearchIndexFts extends Table
+    with
+        TableInfo<SearchIndexFts, SearchIndexFt>,
+        VirtualTableInfo<SearchIndexFts, SearchIndexFt> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SearchIndexFts(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+      'value', aliasedName, false,
+      type: DriftSqlType.string,
+      requiredDuringInsert: true,
+      $customConstraints: '');
+  @override
+  List<GeneratedColumn> get $columns => [value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'search_index_fts';
+  @override
+  Set<GeneratedColumn> get $primaryKey => const {};
+  @override
+  SearchIndexFt map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SearchIndexFt(
+      value: attachedDatabase.typeMapping
+          .read(DriftSqlType.string, data['${effectivePrefix}value'])!,
+    );
+  }
+
+  @override
+  SearchIndexFts createAlias(String alias) {
+    return SearchIndexFts(attachedDatabase, alias);
+  }
+
+  @override
+  bool get dontWriteConstraints => true;
+  @override
+  String get moduleAndArgs =>
+      'fts5(value, content=search_index, content_rowid=id)';
+}
+
+class SearchIndexFt extends DataClass implements Insertable<SearchIndexFt> {
+  String value;
+  SearchIndexFt({required this.value});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['value'] = Variable<String>(value);
+    return map;
+  }
+
+  SearchIndexFtsCompanion toCompanion(bool nullToAbsent) {
+    return SearchIndexFtsCompanion(
+      value: Value(value),
+    );
+  }
+
+  factory SearchIndexFt.fromJson(Map<String, dynamic> json,
+      {ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SearchIndexFt(
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  SearchIndexFt copyWith({String? value}) => SearchIndexFt(
+        value: value ?? this.value,
+      );
+  @override
+  String toString() {
+    return (StringBuffer('SearchIndexFt(')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => value.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SearchIndexFt && other.value == this.value);
+}
+
+class SearchIndexFtsCompanion extends UpdateCompanion<SearchIndexFt> {
+  Value<String> value;
+  Value<int> rowid;
+  SearchIndexFtsCompanion({
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SearchIndexFtsCompanion.insert({
+    required String value,
+    this.rowid = const Value.absent(),
+  }) : value = Value(value);
+  static Insertable<SearchIndexFt> custom({
+    Expression<String>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SearchIndexFtsCompanion copyWith({Value<String>? value, Value<int>? rowid}) {
+    return SearchIndexFtsCompanion(
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SearchIndexFtsCompanion(')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$DriftStorage extends GeneratedDatabase {
   _$DriftStorage(QueryExecutor e) : super(e);
   late final KeyValue keyValue = KeyValue(this);
@@ -2577,6 +2998,8 @@ abstract class _$DriftStorage extends GeneratedDatabase {
   late final Requests requests = Requests(this);
   late final RequestsQueue requestsQueue = RequestsQueue(this);
   late final RequestsQueueFiles requestsQueueFiles = RequestsQueueFiles(this);
+  late final SearchIndex searchIndex = SearchIndex(this);
+  late final SearchIndexFts searchIndexFts = SearchIndexFts(this);
   late final KeyValueDao keyValueDao = KeyValueDao(this as DriftStorage);
   late final DocumentsDao documentsDao = DocumentsDao(this as DriftStorage);
   late final FilesDao filesDao = FilesDao(this as DriftStorage);
@@ -2584,6 +3007,7 @@ abstract class _$DriftStorage extends GeneratedDatabase {
   late final GraphDao graphDao = GraphDao(this as DriftStorage);
   late final LoggingDao loggingDao = LoggingDao(this as DriftStorage);
   late final RequestsDao requestsDao = RequestsDao(this as DriftStorage);
+  late final SearchDao searchDao = SearchDao(this as DriftStorage);
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -2601,7 +3025,9 @@ abstract class _$DriftStorage extends GeneratedDatabase {
         logging,
         requests,
         requestsQueue,
-        requestsQueueFiles
+        requestsQueueFiles,
+        searchIndex,
+        searchIndexFts
       ];
   @override
   DriftDatabaseOptions get options =>

@@ -15,6 +15,8 @@ mixin _$RequestsDaoMixin on DatabaseAccessor<DriftStorage> {
   Nodes get nodes => attachedDatabase.nodes;
   Edges get edges => attachedDatabase.edges;
   Logging get logging => attachedDatabase.logging;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Selectable<CachedRequest> _getRequestCacheAll() {
     return customSelect('SELECT * FROM requests', variables: [], readsFrom: {
       requests,

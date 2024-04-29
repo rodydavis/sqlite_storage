@@ -89,3 +89,19 @@ CREATE TABLE requests_queue_files (
     field TEXT NOT NULL,
     value BLOB NOT NULL
 );
+
+CREATE TABLE search_index (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    [value] TEXT NOT NULL,
+    [key] TEXT NOT NULL,
+    ttl INTEGER,
+    created DATETIME NOT NULL,
+    updated DATETIME NOT NULL
+) UNIQUE(key);
+
+CREATE VIRTUAL TABLE search_index_fts
+USING fts5(
+    value,
+    content=search_index,
+    content_rowid=id
+);

@@ -15,6 +15,8 @@ mixin _$KeyValueDaoMixin on DatabaseAccessor<DriftStorage> {
   RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
   RequestsQueueFiles get requestsQueueFiles =>
       attachedDatabase.requestsQueueFiles;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Selectable<KeyValueData> _search(String query) {
     return customSelect(
         'SELECT "key", value FROM key_value WHERE "key" LIKE ?1 OR value LIKE ?1',

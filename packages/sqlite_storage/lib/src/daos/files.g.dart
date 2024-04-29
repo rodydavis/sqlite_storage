@@ -15,6 +15,8 @@ mixin _$FilesDaoMixin on DatabaseAccessor<DriftStorage> {
   RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
   RequestsQueueFiles get requestsQueueFiles =>
       attachedDatabase.requestsQueueFiles;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Selectable<FileData> _search(String query) {
     return customSelect(
         'SELECT * FROM files WHERE(path LIKE ?1 OR data LIKE ?1)',

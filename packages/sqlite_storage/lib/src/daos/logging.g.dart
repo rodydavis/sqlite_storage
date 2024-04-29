@@ -15,6 +15,8 @@ mixin _$LoggingDaoMixin on DatabaseAccessor<DriftStorage> {
   RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
   RequestsQueueFiles get requestsQueueFiles =>
       attachedDatabase.requestsQueueFiles;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Future<int> _add(String? message, int date, int? sequenceNumber, int level,
       String name, String? error, String? stackTrace) {
     return customInsert(

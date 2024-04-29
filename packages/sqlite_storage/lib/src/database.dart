@@ -11,6 +11,7 @@ import 'daos/graph.dart';
 import 'daos/key_value.dart';
 import 'daos/logging.dart';
 import 'daos/requests.dart';
+import 'daos/search.dart';
 import 'id_generator.dart';
 
 part 'database.g.dart';
@@ -23,6 +24,7 @@ part 'database.g.dart';
   GraphDao,
   LoggingDao,
   RequestsDao,
+  SearchDao,
 ], include: {
   'sql/tables.drift'
 })
@@ -175,6 +177,7 @@ class DriftStorage extends _$DriftStorage {
   GraphDao get graph => graphDao;
   AnalyticsDao get track => analyticsDao;
   RequestsDao get http => requestsDao;
+  SearchDao get search => searchDao;
 
   static bool _initialized = false;
   static final _instances = <DriftStorage>[];

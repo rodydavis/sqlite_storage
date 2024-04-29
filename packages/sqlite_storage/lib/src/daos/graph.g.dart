@@ -15,6 +15,8 @@ mixin _$GraphDaoMixin on DatabaseAccessor<DriftStorage> {
   RequestsQueue get requestsQueue => attachedDatabase.requestsQueue;
   RequestsQueueFiles get requestsQueueFiles =>
       attachedDatabase.requestsQueueFiles;
+  SearchIndex get searchIndex => attachedDatabase.searchIndex;
+  SearchIndexFts get searchIndexFts => attachedDatabase.searchIndexFts;
   Selectable<DatabaseNode> _getNodes() {
     return customSelect('SELECT * FROM nodes', variables: [], readsFrom: {
       nodes,
